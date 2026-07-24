@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Send } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -35,6 +35,19 @@ function SectionHeader({ title, subtitle, action }) {
 // ── Home Page ─────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [featuredProducts] = useState(products.slice(0, 6))
+  const navigate = useNavigate()
+  const [userName, setUserName] = useState(() => localStorage.getItem('userName') || '')
+  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true')
+
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsLoggedIn(localStorage.getItem('isLoggedIn') === 'true')
+      setUserName(localStorage.getItem('userName') || '')
+    }
+    window.addEventListener('storage', checkAuth)
+    checkAuth()
+    return () => window.removeEventListener('storage', checkAuth)
+  }, [])
 
   return (
     <div className="min-h-screen bg-bg-light">
@@ -85,28 +98,50 @@ export default function HomePage() {
             {/* User card */}
             <div className="bg-primary rounded p-4 text-white text-sm">
               <div className="flex items-center gap-2 mb-3">
-  <img
-    src={img("pic1.jpg")}
-    alt="User"
-    className="w-10 h-10 rounded-full object-cover border border-white"
-    onError={(e) => {
-      e.target.src = "https://placehold.co/40x40";
-    }}
-  />
-
-  <div>
-    <div className="font-medium">Hi, user</div>
-    <div className="text-xs opacity-80">let's get started</div>
-  </div>
-</div>
-              <div className="flex gap-2">
-                <button className="flex-1 bg-white text-primary text-xs font-semibold py-1.5 rounded hover:opacity-90">
-                  Join now
-                </button>
-                <button className="flex-1 border border-white text-white text-xs font-semibold py-1.5 rounded hover:bg-white/10">
-                  Log in
-                </button>
+                {isLoggedIn ? (
+                  <div className="w-10 h-10 rounded-full bg-white text-primary flex items-center justify-center text-lg font-bold border border-white">
+                    {userName.charAt(0).toUpperCase()}
+                  </div>
+                ) : (
+                  <img
+                    src={img("pic1.jpg")}
+                    alt="User"
+                    className="w-10 h-10 rounded-full object-cover border border-white"
+                    onError={(e) => { e.target.src = "https://placehold.co/40x40" }}
+                  />
+                )}
+                <div>
+                  <div className="font-medium">
+                    Hi, {isLoggedIn ? userName.split(' ')[0] : 'user'}
+                  </div>
+                  <div className="text-xs opacity-80">
+                    {isLoggedIn ? "Welcome back" : "let's get started"}
+                  </div>
+                </div>
               </div>
+              {isLoggedIn ? (
+                <button
+                  onClick={() => navigate('/products')}
+                  className="w-full bg-white text-primary text-xs font-semibold py-1.5 rounded hover:opacity-90"
+                >
+                  Shop now
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <Link
+                    to="/signup"
+                    className="flex-1 bg-white text-primary text-xs font-semibold py-1.5 rounded hover:opacity-90 text-center"
+                  >
+                    Join now
+                  </Link>
+                  <Link
+                    to="/login"
+                    className="flex-1 border border-white text-white text-xs font-semibold py-1.5 rounded hover:bg-white/10 text-center"
+                  >
+                    Log in
+                  </Link>
+                </div>
+              )}
             </div>
             {/* $10 off card */}
             <div className="bg-orange-400 rounded p-3 text-white text-sm">

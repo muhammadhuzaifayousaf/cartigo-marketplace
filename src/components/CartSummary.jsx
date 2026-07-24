@@ -1,7 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 
 export default function CartSummary() {
   const { subtotal } = useCart();
+  const navigate = useNavigate();
 
   const discount = 60;
   const tax = 14;
@@ -39,7 +41,17 @@ export default function CartSummary() {
         </div>
       </div>
 
-      <button className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white py-3 rounded">
+      <button
+        onClick={() => {
+          const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+          if (!isLoggedIn) {
+            navigate("/login");
+            return;
+          }
+          navigate("/checkout");
+        }}
+        className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white py-3 rounded"
+      >
         Checkout
       </button>
     </div>
