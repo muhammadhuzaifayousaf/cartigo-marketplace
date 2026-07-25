@@ -46,9 +46,9 @@ function SearchBar({ onSearch }) {
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
         placeholder="Search"
-        className="flex-1 border border-border-col border-r-0 rounded-l px-4 py-2 text-sm outline-none focus:border-primary"
+        className="flex-1 min-w-0 border border-border-col border-r-0 rounded-l px-3 sm:px-4 py-2 text-sm outline-none focus:border-primary"
       />
-      <select className="border border-border-col border-r-0 px-2 py-2 text-sm bg-white text-text-secondary outline-none cursor-pointer">
+      <select className="hidden sm:block border border-border-col border-r-0 px-2 py-2 text-sm bg-white text-text-secondary outline-none cursor-pointer">
         <option>All category</option>
         <option>Electronics</option>
         <option>Clothes</option>
@@ -56,7 +56,7 @@ function SearchBar({ onSearch }) {
       </select>
       <button
         onClick={handleSearch}
-        className="bg-primary text-white px-5 py-2 rounded-r text-sm font-medium hover:bg-primary-dark transition-colors"
+        className="bg-primary text-white px-3 sm:px-5 py-2 rounded-r text-sm font-medium hover:bg-primary-dark transition-colors flex-shrink-0"
       >
         Search
       </button>

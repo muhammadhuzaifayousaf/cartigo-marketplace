@@ -6,7 +6,7 @@ import Footer from '../components/Footer'
 import FormInput from '../components/FormInput'
 import SuccessModal from '../components/SuccessModal'
 import { useCart } from '../context/CartContext'
-import { img, formatPrice } from '../utils/helpers'
+import { formatPrice } from '../utils/helpers'
 
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -189,7 +189,7 @@ export default function CheckoutPage() {
                       <div key={item.id} className="flex gap-3">
                         <div className="w-14 h-14 bg-bg-light rounded flex-shrink-0 flex items-center justify-center overflow-hidden">
                           <img
-                            src={img(item.image)}
+                            src={item.image}
                             alt={item.name}
                             className="object-contain w-full h-full p-1"
                             onError={(e) => { e.target.src = 'https://placehold.co/56x56/f7f7f7/999?text=Item' }}

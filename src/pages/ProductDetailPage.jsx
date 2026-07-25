@@ -8,6 +8,7 @@ import PromoBanner from '../components/PromoBanner'
 import { products } from '../data/products'
 import { img, formatPrice } from '../utils/helpers'
 import { useCart } from '../context/CartContext'
+import { useToast } from '../context/ToastContext'
 import Flag from 'react-world-flags'
 
 // Price tier table from the Figma design
@@ -31,6 +32,7 @@ export default function ProductDetailPage() {
   const navigate   = useNavigate()
   const product    = products.find((p) => p.id === Number(id)) || products[0]
   const { addItem } = useCart()
+  const showToast = useToast()
 
   const [activeImg,     setActiveImg]     = useState(0)
   const [activeTab,     setActiveTab]     = useState('description')
@@ -185,6 +187,7 @@ export default function ProductDetailPage() {
                     image: img(product.image),
                     seller: product.seller || 'ShopHub',
                   }, qty)
+                  showToast('Successfully added to cart!')
                   setQty(1)
                 }}
                 className="flex-1 bg-primary text-white py-2.5 rounded text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"

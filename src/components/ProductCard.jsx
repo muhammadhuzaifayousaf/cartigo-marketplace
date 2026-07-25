@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import StarRating from './StarRating'
 import { img, formatPrice } from '../utils/helpers'
 import { useCart } from '../context/CartContext'
+import { useToast } from '../context/ToastContext'
 
 // ── Grid Card ──────────────────────────────────────────────────────────────
 function GridCard({ product, onWishlist, wishlisted, onAddToCart }) {
@@ -150,6 +151,7 @@ function ListCard({ product, onWishlist, wishlisted, onAddToCart }) {
 export default function ProductCard({ product, mode = 'grid', wishlistIds = [], onWishlist = () => {} }) {
   const wishlisted = wishlistIds.includes(product.id)
   const { addItem } = useCart()
+  const showToast = useToast()
 
   const handleAddToCart = (p) => {
     addItem({
@@ -159,6 +161,7 @@ export default function ProductCard({ product, mode = 'grid', wishlistIds = [], 
       image: img(p.image),
       seller: p.seller || 'ShopHub',
     })
+    showToast('Successfully added to cart!')
   }
 
   return mode === 'grid'

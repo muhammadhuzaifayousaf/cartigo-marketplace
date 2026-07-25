@@ -1,5 +1,6 @@
 import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
+import { ToastProvider } from "./context/ToastContext";
 
 import HomePage from "./pages/HomePage";
 import ProductListingPage from "./pages/ProductListingPage";
@@ -27,26 +28,28 @@ function NotFound() {
 
 export default function App() {
   return (
-    <CartProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/products" element={<ProductListingPage />} />
-          <Route path="/products/:id" element={<ProductDetailPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route
-            path="/checkout"
-            element={
-              <ProtectedRoute>
-                <CheckoutPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
-    </CartProvider>
+    <ToastProvider>
+      <CartProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/products" element={<ProductListingPage />} />
+            <Route path="/products/:id" element={<ProductDetailPage />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute>
+                  <CheckoutPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Router>
+      </CartProvider>
+    </ToastProvider>
   );
 }

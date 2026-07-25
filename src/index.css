@@ -90,3 +90,12 @@
 .animate-bounceIn {
   animation: bounceIn 0.5s ease-out;
 }
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translate(-50%, -12px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.animate-toastIn {
+  animation: toastIn 0.3s ease-out;
+}
