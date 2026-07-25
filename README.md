@@ -1,10 +1,10 @@
 # 🛒 React eCommerce Frontend
 
-A modern and fully responsive **eCommerce web application** built with **React**, **Vite**, and **Tailwind CSS**. The project recreates a professional online shopping experience with a clean UI, reusable components, product browsing, a fully functional shopping cart with global state management and localStorage persistence, and responsive layouts optimized for desktop, tablet, and mobile devices.
+A modern and fully responsive **eCommerce web application** built with **React**, **Vite**, and **Tailwind CSS**. The project recreates a professional online shopping experience with a clean UI, reusable components, product browsing, a fully functional shopping cart with global state management and localStorage persistence, authentication pages with real-time form validation, a checkout flow with protected routes, and responsive layouts optimized for desktop, tablet, and mobile devices.
 
 <p align="center">
   <a href="https://muhammadhuzaifayousaf.github.io/ecommerce-frontend/">
-    <img src="https://github.com/user-attachments/assets/407bfa8a-d4b2-4698-aef0-e815a0e5be11" alt="React eCommerce Frontend Preview" width="100%">
+    <img src="https://github.com/user-attachments/assets/b8a8fcb6-17f0-422d-9823-0f0f3a465951" alt="React eCommerce Frontend Preview" width="100%">
   </a>
 </p>
 
@@ -26,16 +26,23 @@ A modern and fully responsive **eCommerce web application** built with **React**
 - 📄 **Week 3 Report / Assignment:** https://drive.google.com/file/d/1O547JKEvQBWn6v3IIdzf4HEgi68ZFF-I/
 - Covers cart functionality, React Context API state management, localStorage persistence, interactive cart page with quantity controls, and dynamic totals.
 
+### Week 4 Documentation
+- 📄 **Week 4 Report / Assignment:** https://drive.google.com/file/d/1MDBP3lRaihF9iZ7qHJVLaUu3GQW1EwBm/
+- Covers UI forms, frontend validation, authentication pages (Login/Signup), checkout flow, protected routes, toast notifications, and success feedback.
+
 ## ✨ Features
 
 ### Core App Experience
 - Modern and responsive eCommerce user interface
-- Responsive navigation bar with category dropdowns
-- Hero banner with promotional sections
-- Product listing page with multiple products
-- Product details page with image gallery
+- Responsive navigation bar with category dropdowns and auth-aware buttons
+- Hero banner with promotional sections and dynamic user greeting
+- Product listing page with multiple products and real-time toast notifications
+- Product details page with image gallery and quantity-based add to cart
 - Shopping cart with quantity management
 - Save for later (wishlist) functionality
+- Login and Signup pages with glassmorphism card design
+- Checkout page with shipping form and order summary
+- Protected routes with authentication state management
 
 ### Week 2 Enhancements
 - Product search and category filtering
@@ -65,25 +72,45 @@ A modern and fully responsive **eCommerce web application** built with **React**
 - localStorage persistence — cart data survives page refreshes
 - Fully responsive cart UI on mobile and desktop
 
+### Week 4 Enhancements
+- Login page with email/password fields, validation, show/hide toggle, and Remember Me
+- Signup page with four-field form, confirm password validation, and duplicate email detection
+- Checkout page with two-column layout: 6-field shipping form + sticky order summary
+- Real-time form validation — red borders, error messages, clear-on-typing across all forms
+- Success modal with animated checkmark after placing an order
+- Protected route — Checkout redirects to Login with toast when unauthenticated
+- Auth-aware navbar — shows Login/Join Now when logged out, Avatar/Logout when logged in
+- Dynamic greeting on Home page hero based on logged-in user name
+- Global toast notifications — "Successfully added to cart!" on all Add to Cart buttons
+- Reusable FormInput component with label, error, password toggle, red border
+- Reusable AuthLayout component with glassmorphism card design
+- ToastContext for system-wide toast state management
+- CSS keyframe animations — fadeIn, scaleIn, bounceIn, toastIn
+- Page reload on login/signup for clean state hydration
+- Mobile search bar fix — category dropdown hidden on small screens, icon never clips
+
 ## 📄 Pages
 
-| Page | Route |
-|------|-------|
-| Home | `/` |
-| Product Listing | `/products` |
-| Product Details | `/products/:id` |
-| Shopping Cart | `/cart` |
+| Page | Route | Description |
+|------|-------|-------------|
+| Home | `/` | Hero banner, featured products, deals, categories, promo |
+| Product Listing | `/products` | Search, filters, grid/list view, pagination |
+| Product Details | `/products/:id` | Image gallery, specs, quantity selector, add to cart |
+| Shopping Cart | `/cart` | Quantity controls, order summary, saved for later |
+| Login | `/login` | Email/password auth with validation and show/hide toggle |
+| Signup | `/signup` | Registration form with confirm password and validation |
+| Checkout | `/checkout` | Shipping form + order summary (protected — requires login) |
 
 ## 🛠️ Tech Stack
 
 * **React 18**
-* **React Context API**
+* **React Context API** (Cart + Toast)
 * **Vite**
 * **Tailwind CSS**
-* **React Router DOM**
+* **React Router DOM** (HashRouter)
 * **Lucide React**
 * **React World Flags**
-* **localStorage**
+* **localStorage** (auth + cart persistence)
 * **GitHub Pages**
 
 ## ⚙️ Installation
