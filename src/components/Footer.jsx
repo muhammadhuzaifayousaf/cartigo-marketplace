@@ -1,30 +1,43 @@
 import { Link } from 'react-router-dom'
-import { ShoppingBag, Facebook, Twitter, Linkedin, Instagram, Youtube } from 'lucide-react'
-import ReactCountryFlag from "react-country-flag";
-
-const getFlagEmoji = (countryCode) =>
-  countryCode
-    .toUpperCase()
-    .replace(/./g, (char) =>
-      String.fromCodePoint(127397 + char.charCodeAt())
-    );
+import { Facebook, Twitter, Linkedin, Instagram, Youtube } from 'lucide-react'
+import { img } from '../utils/helpers'
 
 const footerCols = [
   {
     title: 'About',
-    links: ['About Us', 'Find store', 'Categories', 'Blogs'],
+    links: [
+      { label: 'About Us', to: '/about' },
+      { label: 'Find store', to: '/products' },
+      { label: 'Categories', to: '/products' },
+      { label: 'Blogs', to: '/about' },
+    ],
   },
   {
     title: 'Partnership',
-    links: ['About Us', 'Find store', 'Categories', 'Blogs'],
+    links: [
+      { label: 'Sell on Cartiqo', to: '/about' },
+      { label: 'Affiliate program', to: '/about' },
+      { label: 'Advertise', to: '/about' },
+      { label: 'Supplier directory', to: '/about' },
+    ],
   },
   {
     title: 'Information',
-    links: ['Help Center', 'Money Refund', 'Shipping', 'Contact us'],
+    links: [
+      { label: 'Help Center', to: '/about' },
+      { label: 'Money Refund', to: '/about' },
+      { label: 'Shipping', to: '/about' },
+      { label: 'Contact us', to: '/about' },
+    ],
   },
   {
     title: 'For users',
-    links: ['Login', 'Register', 'Settings', 'My Orders'],
+    links: [
+      { label: 'Login', to: '/login' },
+      { label: 'Register', to: '/signup' },
+      { label: 'My Orders', to: '/cart' },
+      { label: 'Settings', to: '/about' },
+    ],
   },
 ]
 
@@ -55,13 +68,10 @@ export default function Footer() {
           {/* Brand column */}
           <div className="col-span-2 sm:col-span-3 md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
-              <div className="bg-primary rounded p-1.5">
-                <ShoppingBag size={16} className="text-white" />
-              </div>
-              <span className="text-lg font-bold text-primary">Brand</span>
+              <img src={img('logo.png')} alt="Cartiqo" className="h-10" />
             </div>
             <p className="text-sm text-text-muted leading-relaxed mb-4">
-              Best information about the company goes here but now lorem ipsum is
+              Your one-stop destination for quality products at unbeatable prices. Shop with confidence and enjoy fast, reliable delivery worldwide.
             </p>
             <div className="flex gap-3">
               {[Facebook, Twitter, Linkedin, Instagram, Youtube].map((Icon, i) => (
@@ -78,9 +88,9 @@ export default function Footer() {
               <h4 className="font-semibold text-text-primary mb-3 text-sm">{col.title}</h4>
               <ul className="space-y-2">
                 {col.links.map((link) => (
-                  <li key={link}>
-                    <Link to="/" className="text-sm text-text-muted hover:text-primary transition-colors">
-                      {link}
+                  <li key={link.label}>
+                    <Link to={link.to} className="text-sm text-text-muted hover:text-primary transition-colors">
+                      {link.label}
                     </Link>
                   </li>
                 ))}
@@ -92,22 +102,17 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-text-primary mb-3 text-sm">Get app</h4>
             <div className="space-y-2">
-  <a href="#">
-    <img
-      src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
-      alt="App Store"
-      className="w-32"
-    />
-  </a>
-
-  <a href="#">
-    <img
-      src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-      alt="Google Play"
-      className="w-32"
-    />
-  </a>
-</div>
+              <img
+                src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
+                alt="App Store"
+                className="w-32"
+              />
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                alt="Google Play"
+                className="w-32"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -116,17 +121,17 @@ export default function Footer() {
       <div className="border-t border-border-col">
         <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-2">
           <p className="text-xs text-text-muted">
-            © {new Date().getFullYear()} Ecommerce.
+            © {new Date().getFullYear()} Cartiqo. All rights reserved.
           </p>
           <button className="text-xs text-text-muted flex items-center gap-1 hover:text-primary">
-  <img
-  src="https://flagcdn.com/w20/us.png"
-  alt="USA"
-  className="w-5 h-4 object-cover rounded-sm"
-/>
-  English
-  <span>▲</span>
-</button>
+            <img
+              src="https://flagcdn.com/w20/us.png"
+              alt="USA"
+              className="w-5 h-4 object-cover rounded-sm"
+            />
+            English
+            <span>▲</span>
+          </button>
         </div>
       </div>
     </footer>

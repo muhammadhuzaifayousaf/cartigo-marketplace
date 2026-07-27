@@ -22,3 +22,9 @@ export const clamp = (val, min, max) => Math.min(Math.max(val, min), max)
  */
 export const truncate = (text, len = 60) =>
   text.length > len ? text.slice(0, len) + '…' : text
+
+/**
+ * Validate email format
+ */
+export const validateEmail = (email) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)

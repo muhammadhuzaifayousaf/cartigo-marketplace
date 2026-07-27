@@ -46,59 +46,14 @@ export const products = productData.map((product, index) => ({
   features: product.features ?? ['Premium quality', 'Great value', 'Fast delivery'],
 }))
 
-// ─── Cart Data ───────────────────────────────────────────────────────────────
-
-export const initialCartItems = [
-  {
-    id: 1,
-    name: 'T-shirts with multiple colors, for men and lady',
-    price: 78.99,
-    qty: 9,
-    size: 'medium',
-    color: 'blue',
-    material: 'Plastic',
-    seller: 'Artel Market',
-    image: 'tshirt.jpg',
-  },
-  {
-    id: 2,
-    name: 'T-shirts with multiple colors, for men and lady',
-    price: 39.00,
-    qty: 3,
-    size: 'medium',
-    color: 'blue',
-    material: 'Plastic',
-    seller: 'Best factory LLC',
-    image: 'backpack.jpg',
-  },
-  {
-    id: 3,
-    name: 'T-shirts with multiple colors, for men and lady',
-    price: 170.50,
-    qty: 1,
-    size: 'medium',
-    color: 'blue',
-    material: 'Plastic',
-    seller: 'Artel Market',
-    image: 'smartwatch.jpg',
-  },
-]
-
-export const savedForLaterItems = [
-  { id: 10, name: 'GoPro HERO6 4K Action Camera - Black', price: 99.50, image: 'phone1.jpg' },
-  { id: 11, name: 'GoPro HERO6 4K Action Camera - Black', price: 99.50, image: 'phone2.jpg' },
-  { id: 12, name: 'GoPro HERO6 4K Action Camera - Black', price: 99.50, image: 'smartwatch.jpg' },
-  { id: 13, name: 'GoPro HERO6 4K Action Camera - Black', price: 99.50, image: 'laptop.jpg' },
-]
-
 // ─── Home Page Data ──────────────────────────────────────────────────────────
 
 export const dealProducts = [
-  { id: 1, name: 'Smart watches', image: 'smartwatch.jpg', discount: -25, category: 'Men blazers' },
-  { id: 2, name: 'Laptops',       image: 'laptop.jpg',     discount: -15, category: 'Laptops' },
-  { id: 3, name: 'GoPro cameras', image: 'camera.jpg',     discount: -40, category: 'Cameras' },
-  { id: 4, name: 'Headphones',    image: 'headphones.jpg', discount: -25, category: 'Headphones' },
-  { id: 5, name: 'Canon cameras', image: 'phone1.jpg',     discount: -25, category: 'Canon cameras' },
+  { id: 1, name: 'Smart watches', image: 'smartwatch.jpg', discount: 25, category: 'Men blazers' },
+  { id: 2, name: 'Laptops',       image: 'laptop.jpg',     discount: 15, category: 'Laptops' },
+  { id: 3, name: 'GoPro cameras', image: 'camera.jpg',     discount: 40, category: 'Cameras' },
+  { id: 4, name: 'Headphones',    image: 'headphones.jpg', discount: 25, category: 'Headphones' },
+  { id: 5, name: 'Canon cameras', image: 'phone1.jpg',     discount: 25, category: 'Canon cameras' },
 ]
 
 export const homeOutdoorCategories = [

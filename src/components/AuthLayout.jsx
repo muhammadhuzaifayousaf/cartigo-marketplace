@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ShoppingBag } from 'lucide-react'
+import { img } from '../utils/helpers'
 
 export default function AuthLayout({ children, title, subtitle }) {
   return (
@@ -12,11 +12,8 @@ export default function AuthLayout({ children, title, subtitle }) {
 
       <div className="relative w-full max-w-md">
         {/* Logo */}
-        <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-          <div className="bg-primary rounded-lg p-2">
-            <ShoppingBag size={22} className="text-white" />
-          </div>
-          <span className="text-2xl font-bold text-primary">Brand</span>
+        <Link to="/" className="flex items-center justify-center mb-8">
+          <img src={img('logo.png')} alt="Cartiqo" className="h-16" />
         </Link>
 
         {/* Glassmorphism card */}
@@ -32,7 +29,7 @@ export default function AuthLayout({ children, title, subtitle }) {
 
         {/* Footer text */}
         <p className="text-center text-xs text-text-muted mt-6">
-          By continuing, you agree to Brand's{' '}
+          By continuing, you agree to Cartiqo's{' '}
           <span className="text-primary cursor-pointer hover:underline">Terms of Service</span>{' '}
           and{' '}
           <span className="text-primary cursor-pointer hover:underline">Privacy Policy</span>.

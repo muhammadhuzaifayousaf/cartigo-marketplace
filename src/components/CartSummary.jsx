@@ -1,43 +1,50 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { formatPrice } from "../utils/helpers";
 
 export default function CartSummary() {
   const { subtotal } = useCart();
   const navigate = useNavigate();
+  const [coupon, setCoupon] = useState("");
 
-  const discount = 60;
-  const tax = 14;
-  const total = subtotal - discount + tax;
+  const discount = subtotal >= 100 ? 60 : 0;
+  const tax = Math.round(subtotal * 0.07 * 100) / 100;
+  const total = Math.max(subtotal - discount + tax, 0);
 
   return (
-    <div className="bg-white rounded-lg border p-5">
-      <h3 className="font-semibold mb-4">Have a coupon?</h3>
+    <div className="bg-white rounded-lg border border-border-col p-5">
+      <h3 className="font-semibold mb-4 text-text-primary">Have a coupon?</h3>
 
       <div className="flex mb-5">
         <input
           placeholder="Add coupon"
-          className="border rounded-l px-3 py-2 flex-1"
+          value={coupon}
+          onChange={(e) => setCoupon(e.target.value)}
+          className="border border-border-col rounded-l px-3 py-2 flex-1 text-sm outline-none focus:border-primary"
         />
-        <button className="bg-blue-600 text-white px-4 rounded-r">Apply</button>
+        <button className="bg-primary text-white px-4 rounded-r text-sm font-medium hover:bg-primary-dark transition-colors">
+          Apply
+        </button>
       </div>
 
       <div className="space-y-3 text-sm">
-        <div className="flex justify-between">
+        <div className="flex justify-between text-text-secondary">
           <span>Subtotal</span>
-          <span>${subtotal.toFixed(2)}</span>
+          <span>{formatPrice(subtotal)}</span>
         </div>
-        <div className="flex justify-between text-red-500">
+        <div className="flex justify-between text-danger">
           <span>Discount</span>
-          <span>-${discount.toFixed(2)}</span>
+          <span>-{formatPrice(discount)}</span>
         </div>
-        <div className="flex justify-between text-green-500">
-          <span>Tax</span>
-          <span>+${tax.toFixed(2)}</span>
+        <div className="flex justify-between text-success">
+          <span>Tax (7%)</span>
+          <span>+{formatPrice(tax)}</span>
         </div>
-        <hr />
-        <div className="flex justify-between font-bold text-xl">
+        <hr className="border-border-col" />
+        <div className="flex justify-between font-bold text-xl text-text-primary">
           <span>Total</span>
-          <span>${total.toFixed(2)}</span>
+          <span>{formatPrice(total)}</span>
         </div>
       </div>
 
@@ -45,12 +52,12 @@ export default function CartSummary() {
         onClick={() => {
           const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
           if (!isLoggedIn) {
-            navigate("/login");
+            navigate("/login", { state: { from: "/checkout" } });
             return;
           }
           navigate("/checkout");
         }}
-        className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white py-3 rounded"
+        className="w-full mt-6 bg-success hover:bg-[#009a14] text-white py-3 rounded text-sm font-bold transition-colors"
       >
         Checkout
       </button>

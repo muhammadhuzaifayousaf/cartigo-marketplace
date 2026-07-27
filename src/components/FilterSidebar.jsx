@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { sidebarCategories, brands, features, conditions, ratingFilters } from '../data/products'
+import StarRating from './StarRating'
 
 // Collapsible section wrapper
 function Section({ title, children, defaultOpen = true }) {
@@ -58,9 +59,6 @@ export default function FilterSidebar({ filters, onChange }) {
               </button>
             </li>
           ))}
-          <li>
-            <button className="text-sm text-primary font-medium">See all</button>
-          </li>
         </ul>
       </Section>
 
@@ -70,7 +68,6 @@ export default function FilterSidebar({ filters, onChange }) {
           {brands.map((b) => (
             <CheckRow key={b} label={b} filterKey="brands" value={b} />
           ))}
-          <button className="text-sm text-primary font-medium mt-1">See all</button>
         </div>
       </Section>
 
@@ -80,7 +77,6 @@ export default function FilterSidebar({ filters, onChange }) {
           {features.map((f) => (
             <CheckRow key={f} label={f} filterKey="features" value={f} />
           ))}
-          <button className="text-sm text-primary font-medium mt-1">See all</button>
         </div>
       </Section>
 
@@ -115,7 +111,6 @@ export default function FilterSidebar({ filters, onChange }) {
               />
             </div>
           </div>
-          <button className="btn-primary w-full">Apply</button>
         </div>
       </Section>
 
@@ -148,7 +143,7 @@ export default function FilterSidebar({ filters, onChange }) {
                 onChange={() => toggle('ratings', r)}
                 className="accent-primary w-3.5 h-3.5"
               />
-              <span className="text-yellow-400">{'★'.repeat(r)}{'☆'.repeat(5 - r)}</span>
+              <StarRating rating={r * 2} size="sm" />
             </label>
           ))}
         </div>

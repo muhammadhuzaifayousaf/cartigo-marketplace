@@ -7,22 +7,12 @@ import {
 } from 'lucide-react'
 import { navCategories } from '../data/products'
 import { useCart } from '../context/CartContext'
-import ReactCountryFlag from "react-country-flag";
-
-const getFlagEmoji = (countryCode) =>
-  countryCode
-    .toUpperCase()
-    .replace(/./g, (char) =>
-      String.fromCodePoint(127397 + char.charCodeAt())
-    );
+import { img } from '../utils/helpers'
 
 function Logo() {
   return (
     <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-      <div className="bg-primary rounded p-1.5">
-        <ShoppingBag size={18} className="text-white" />
-      </div>
-      <span className="text-xl font-bold text-primary">Brand</span>
+      <img src={img('logo.png')} alt="Cartiqo" className="h-12" />
     </Link>
   )
 }
@@ -46,14 +36,9 @@ function SearchBar({ onSearch }) {
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
         placeholder="Search"
+        aria-label="Search products"
         className="flex-1 min-w-0 border border-border-col border-r-0 rounded-l px-3 sm:px-4 py-2 text-sm outline-none focus:border-primary"
       />
-      <select className="hidden sm:block border border-border-col border-r-0 px-2 py-2 text-sm bg-white text-text-secondary outline-none cursor-pointer">
-        <option>All category</option>
-        <option>Electronics</option>
-        <option>Clothes</option>
-        <option>Home</option>
-      </select>
       <button
         onClick={handleSearch}
         className="bg-primary text-white px-3 sm:px-5 py-2 rounded-r text-sm font-medium hover:bg-primary-dark transition-colors flex-shrink-0"
@@ -130,15 +115,15 @@ export default function Navbar() {
 
         {/* Desktop nav: icons + auth buttons */}
         <nav className="hidden md:flex items-center gap-5">
-          <IconBtn icon={MessageSquare} label="Message" to="/" />
-          <IconBtn icon={Package} label="Orders" to="/" />
+          <IconBtn icon={MessageSquare} label="Message" to="/about" />
+          <IconBtn icon={Package} label="Orders" to="/cart" />
           <IconBtn icon={ShoppingCart} label="My cart" to="/cart" badge={totalItems} />
 
           <div className="w-px h-8 bg-border-col" />
 
           {isLoggedIn ? (
             <div className="flex items-center gap-3">
-              <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <Link to="/about" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">
                   {userInitial}
                 </div>
@@ -183,9 +168,9 @@ export default function Navbar() {
             )}
           </Link>
           {isLoggedIn ? (
-            <div className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">
+            <Link to="/about" className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">
               {userInitial}
-            </div>
+            </Link>
           ) : (
             <Link to="/login" className="text-text-secondary">
               <User size={22} />
@@ -203,9 +188,9 @@ export default function Navbar() {
       <div className="hidden md:flex border-t border-border-col">
         <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-between py-2">
           <div className="flex items-center gap-6">
-            <button className="flex items-center gap-1 text-sm font-medium text-text-primary hover:text-primary">
+            <Link to="/products" className="flex items-center gap-1 text-sm font-medium text-text-primary hover:text-primary">
               <Menu size={16} /> All category
-            </button>
+            </Link>
             {navCategories.slice(1).map((cat) => (
               <Link
                 key={cat}
@@ -286,7 +271,7 @@ export default function Navbar() {
               <Link to="/products" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
                 <List size={18} /> Categories
               </Link>
-              <Link to="/products" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
+              <Link to="/cart" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
                 <Heart size={18} /> Favorites
               </Link>
               <Link to="/cart" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
@@ -298,10 +283,10 @@ export default function Navbar() {
                 <span>English | USD</span>
               </div>
 
-              <Link to="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
+              <Link to="/about" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
                 <MessageSquare size={18} /> Contact us
               </Link>
-              <Link to="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
+              <Link to="/about" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
                 <FileText size={18} /> About
               </Link>
             </div>
@@ -335,9 +320,9 @@ export default function Navbar() {
             </div>
 
             <div className="px-4 py-4 border-t border-border-col text-sm text-text-muted space-y-2">
-              <Link to="/" onClick={() => setMobileOpen(false)} className="block hover:text-primary">User agreement</Link>
-              <Link to="/" onClick={() => setMobileOpen(false)} className="block hover:text-primary">Partnership</Link>
-              <Link to="/" onClick={() => setMobileOpen(false)} className="block hover:text-primary">Privacy policy</Link>
+              <Link to="/about" onClick={() => setMobileOpen(false)} className="block hover:text-primary">User agreement</Link>
+              <Link to="/about" onClick={() => setMobileOpen(false)} className="block hover:text-primary">Partnership</Link>
+              <Link to="/about" onClick={() => setMobileOpen(false)} className="block hover:text-primary">Privacy policy</Link>
             </div>
           </div>
           <div className="flex-1 bg-black/40" onClick={() => setMobileOpen(false)} />

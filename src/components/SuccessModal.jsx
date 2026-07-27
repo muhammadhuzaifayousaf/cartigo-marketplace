@@ -32,7 +32,7 @@ export default function SuccessModal({ isOpen, onClose, onContinueShopping, onGo
           Order placed successfully!
         </h2>
         <p className="text-text-secondary mb-8">
-          Thank you for shopping with <span className="font-semibold text-primary">Brand</span>.
+          Thank you for shopping with <span className="font-semibold text-primary">Cartiqo</span>.
         </p>
 
         <div className="flex gap-3">

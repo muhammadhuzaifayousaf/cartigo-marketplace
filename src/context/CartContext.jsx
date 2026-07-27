@@ -39,7 +39,7 @@ export function CartProvider({ children }) {
   const updateQty = (id, qty) => {
     if (qty < 1) return
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, qty } : item))
+      prev.map((item) => (item.id === id ? { ...item, qty: Math.min(qty, 99) } : item))
     )
   }
 

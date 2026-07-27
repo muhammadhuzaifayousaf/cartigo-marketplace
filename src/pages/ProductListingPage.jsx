@@ -7,7 +7,6 @@ import FilterSidebar from '../components/FilterSidebar'
 import ProductCard from '../components/ProductCard'
 import { products } from '../data/products'
 
-// ── Active filter chip ─────────────────────────────────────────────────────
 function FilterChip({ label, onRemove }) {
   return (
     <span className="inline-flex items-center gap-1 border border-border-col rounded px-2 py-0.5 text-sm text-text-secondary bg-white">
@@ -19,22 +18,25 @@ function FilterChip({ label, onRemove }) {
   )
 }
 
-// ── Pagination ─────────────────────────────────────────────────────────────
-function Pagination({ currentPage, totalPages, onChange }) {
+function Pagination({ currentPage, totalPages, onChange, itemsPerPage, onItemsPerPageChange }) {
   return (
     <div className="flex items-center justify-end gap-1 mt-6">
       <span className="text-sm text-text-muted mr-2">
         Show
-        <select className="border border-border-col rounded px-2 py-1 text-sm ml-1 mr-1 bg-white">
-          <option>10</option>
-          <option>20</option>
-          <option>50</option>
+        <select
+          value={itemsPerPage}
+          onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+          className="border border-border-col rounded px-2 py-1 text-sm ml-1 mr-1 bg-white"
+        >
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+          <option value={50}>50</option>
         </select>
       </span>
       <button
         onClick={() => onChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}
-        className="p-1 border border-border-col rounded hover:bg-bg-light disabled:opacity-40"
+        className="p-1 border border-border-col rounded hover:bg-bg-light disabled:opacity-40 transition-colors"
       >
         <ChevronLeft size={14} />
       </button>
@@ -54,7 +56,7 @@ function Pagination({ currentPage, totalPages, onChange }) {
       <button
         onClick={() => onChange(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}
-        className="p-1 border border-border-col rounded hover:bg-bg-light disabled:opacity-40"
+        className="p-1 border border-border-col rounded hover:bg-bg-light disabled:opacity-40 transition-colors"
       >
         <ChevronRight size={14} />
       </button>
@@ -62,13 +64,13 @@ function Pagination({ currentPage, totalPages, onChange }) {
   )
 }
 
-// ── Product Listing Page ───────────────────────────────────────────────────
 export default function ProductListingPage() {
-  const [viewMode, setViewMode]           = useState('grid')   // 'grid' | 'list'
+  const [viewMode, setViewMode]           = useState('grid')
   const [sortBy, setSortBy]               = useState('featured')
   const [verifiedOnly, setVerifiedOnly]   = useState(false)
   const [wishlistIds, setWishlistIds]     = useState([])
   const [currentPage, setCurrentPage]     = useState(1)
+  const [itemsPerPage, setItemsPerPage]   = useState(10)
   const [showMobileFilter, setShowMobileFilter] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
@@ -83,7 +85,6 @@ export default function ProductListingPage() {
     price: { min: 0, max: 999999 },
   })
 
-  const ITEMS_PER_PAGE = 9
   const categories = ['All', ...new Set(products.map((product) => product.category))]
 
   useEffect(() => {
@@ -91,7 +92,6 @@ export default function ProductListingPage() {
     setSearchTerm(query)
   }, [searchParams])
 
-  // ── Apply filters ──
   const filtered = useMemo(() => {
     let list = [...products]
 
@@ -108,6 +108,10 @@ export default function ProductListingPage() {
       list = list.filter((p) => filters.categories.includes(p.category))
     if (verifiedOnly)
       list = list.filter((p) => p.verified)
+    if (filters.ratings.length)
+      list = list.filter((p) => filters.ratings.some((r) => p.rating >= r))
+    if (filters.condition !== 'Any')
+      list = list.filter((p) => p.condition === filters.condition)
 
     list = list.filter(
       (p) => p.price >= filters.price.min && p.price <= filters.price.max
@@ -123,13 +127,12 @@ export default function ProductListingPage() {
     return list
   }, [searchTerm, selectedCategory, filters, sortBy, verifiedOnly])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
-  const paginated  = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage))
+  const paginated  = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   const toggleWishlist = (id) =>
     setWishlistIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
 
-  // Active filter chips
   const activeChips = [
     ...filters.brands.map((b)    => ({ label: b,    key: 'brands',     val: b })),
     ...filters.features.map((f)  => ({ label: f,    key: 'features',   val: f })),
@@ -147,6 +150,8 @@ export default function ProductListingPage() {
     setFilters({ brands: [], features: [], categories: [], ratings: [], condition: 'Any', price: { min: 0, max: 999999 } })
   }
 
+  const activeCategory = selectedCategory === 'All' ? 'All Products' : selectedCategory
+
   return (
     <div className="min-h-screen bg-bg-light">
       <Navbar />
@@ -155,7 +160,7 @@ export default function ProductListingPage() {
       <div className="max-w-7xl mx-auto px-4 py-3 text-sm text-text-muted">
         <Link to="/" className="hover:text-primary">Home</Link>
         <span className="mx-1">›</span>
-        <span className="text-text-primary">Mobile accessory</span>
+        <span className="text-text-primary">{activeCategory}</span>
       </div>
 
       <main className="max-w-7xl mx-auto px-4 pb-10">
@@ -171,7 +176,7 @@ export default function ProductListingPage() {
               <div className="bg-black/40 flex-1" onClick={() => setShowMobileFilter(false)} />
               <div className="w-72 bg-white overflow-y-auto p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="font-semibold">Filters</span>
+                  <span className="font-semibold text-text-primary">Filters</span>
                   <button onClick={() => setShowMobileFilter(false)}><X size={18} /></button>
                 </div>
                 <FilterSidebar filters={filters} onChange={setFilters} />
@@ -211,8 +216,8 @@ export default function ProductListingPage() {
               </div>
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-sm text-text-muted">
-                  <strong className="text-text-primary">12,911</strong> items in{' '}
-                  <strong className="text-text-primary">Mobile accessory</strong>
+                  <strong className="text-text-primary">{filtered.length}</strong> items in{' '}
+                  <strong className="text-text-primary">{activeCategory}</strong>
                 </span>
                 <label className="flex items-center gap-1.5 text-sm text-text-secondary cursor-pointer ml-auto sm:ml-0">
                   <input
@@ -236,7 +241,6 @@ export default function ProductListingPage() {
                   <option value="rating">Best Rating</option>
                 </select>
 
-                {/* Grid/List toggle */}
                 <div className="flex border border-border-col rounded overflow-hidden">
                   <button
                     onClick={() => setViewMode('grid')}
@@ -254,7 +258,6 @@ export default function ProductListingPage() {
                   </button>
                 </div>
 
-                {/* Mobile filter button */}
                 <button
                   className="md:hidden flex items-center gap-1 text-sm text-text-secondary border border-border-col rounded px-3 py-1.5"
                   onClick={() => setShowMobileFilter(true)}
@@ -271,7 +274,7 @@ export default function ProductListingPage() {
                   <FilterChip key={i} label={chip.label} onRemove={() => removeChip(chip)} />
                 ))}
                 <button onClick={clearAll} className="text-sm text-primary hover:underline">
-                  Clear all filter
+                  Clear all filters
                 </button>
               </div>
             )}
@@ -281,7 +284,9 @@ export default function ProductListingPage() {
               <div className="bg-white rounded border border-border-col p-12 text-center text-text-muted">
                 <p className="text-lg mb-1">No products found</p>
                 <p className="text-sm">Try adjusting your filters or search query</p>
-                <button onClick={clearAll} className="btn-primary mt-4">Clear all filters</button>
+                <button onClick={clearAll} className="bg-primary text-white mt-4 px-6 py-2 rounded text-sm font-semibold hover:bg-primary-dark transition-colors">
+                  Clear all filters
+                </button>
               </div>
             ) : viewMode === 'grid' ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -314,7 +319,9 @@ export default function ProductListingPage() {
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onChange={(p) => { setCurrentPage(p); window.scrollTo(0, 0) }}
+                onChange={(p) => { setCurrentPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                itemsPerPage={itemsPerPage}
+                onItemsPerPageChange={(n) => { setItemsPerPage(n); setCurrentPage(1) }}
               />
             )}
           </div>

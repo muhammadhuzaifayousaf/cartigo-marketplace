@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { Heart, ShoppingCart, Star, Shield, Globe, ChevronLeft } from 'lucide-react'
+import { Heart, ShoppingCart, Star, Shield, Globe } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import StarRating from '../components/StarRating'
@@ -11,26 +11,10 @@ import { useCart } from '../context/CartContext'
 import { useToast } from '../context/ToastContext'
 import Flag from 'react-world-flags'
 
-// Price tier table from the Figma design
-const priceTiers = [
-  { range: '50-100 pcs',  price: 98.00 },
-  { range: '100-700 pcs', price: 90.00 },
-  { range: '700+ pcs',    price: 78.00 },
-]
-
-// "You may like" sidebar items (static data matching design)
-const youMayLike = [
-  { name: 'Men Blazers Sets Elegant Formal', price: '$7.00 - $99.50',  image: 'tshirt.jpg' },
-  { name: 'Men Shirt Sleeve Polo Contrast',  price: '$7.00 - $99.50',  image: 'tshirt.jpg' },
-  { name: 'Apple Watch Series Space Gray',   price: '$7.00 - $99.50',  image: 'smartwatch.jpg' },
-  { name: 'Basketball Crew Socks Long Stuff',price: '$7.00 - $99.50',  image: 'tshirt.jpg' },
-  { name: "New Summer Men's castrol T-Shirts", price: '$7.00 - $99.50', image: 'backpack.jpg' },
-]
-
 export default function ProductDetailPage() {
   const { id }     = useParams()
   const navigate   = useNavigate()
-  const product    = products.find((p) => p.id === Number(id)) || products[0]
+  const product    = products.find((p) => p.id === Number(id))
   const { addItem } = useCart()
   const showToast = useToast()
 
@@ -39,10 +23,41 @@ export default function ProductDetailPage() {
   const [wishlisted,    setWishlisted]    = useState(false)
   const [qty,           setQty]           = useState(1)
 
-  // Thumbnail images — use the same image for all (user replaces with actual thumbnails)
-  const thumbImages = Array(6).fill(product.image)
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-bg-light">
+        <Navbar />
+        <div className="flex flex-col items-center justify-center py-32 px-4 text-center">
+          <h1 className="text-4xl font-bold text-text-primary mb-4">Product Not Found</h1>
+          <p className="text-text-muted mb-6">The product you're looking for doesn't exist.</p>
+          <Link to="/products" className="bg-primary text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors">
+            Browse Products
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
 
+  const thumbImages = Array(6).fill(product.image)
   const tabs = ['description', 'reviews', 'shipping', 'about seller']
+
+  const priceTiers = [
+    { range: '1-49 pcs',   price: product.price },
+    { range: '50-99 pcs',  price: Math.round(product.price * 0.92 * 100) / 100 },
+    { range: '100+ pcs',   price: Math.round(product.price * 0.82 * 100) / 100 },
+  ]
+
+  const relatedProducts = products
+    .filter((p) => p.category === product.category && p.id !== product.id)
+    .slice(0, 6)
+
+  if (relatedProducts.length < 6) {
+    const extras = products
+      .filter((p) => p.id !== product.id && !relatedProducts.find((r) => r.id === p.id))
+      .slice(0, 6 - relatedProducts.length)
+    relatedProducts.push(...extras)
+  }
 
   return (
     <div className="min-h-screen bg-bg-light">
@@ -52,11 +67,9 @@ export default function ProductDetailPage() {
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-1 text-sm text-text-muted flex-wrap">
         <Link to="/"         className="hover:text-primary">Home</Link>
         <span>›</span>
-        <Link to="/products" className="hover:text-primary">Clothings</Link>
+        <Link to="/products" className="hover:text-primary">{product.category}</Link>
         <span>›</span>
-        <Link to="/products" className="hover:text-primary">Men's wear</Link>
-        <span>›</span>
-        <span className="text-text-primary">Summer clothing</span>
+        <span className="text-text-primary truncate max-w-[200px]">{product.name}</span>
       </div>
 
       <main className="max-w-7xl mx-auto px-4 pb-10 space-y-5">
@@ -66,7 +79,6 @@ export default function ProductDetailPage() {
 
           {/* Image gallery */}
           <div className="bg-white rounded border border-border-col p-4">
-            {/* Main image */}
             <div className="aspect-square bg-bg-light rounded flex items-center justify-center overflow-hidden mb-3">
               <img
                 src={img(thumbImages[activeImg])}
@@ -75,7 +87,6 @@ export default function ProductDetailPage() {
                 onError={(e) => { e.target.src = `https://placehold.co/400x400/f7f7f7/999?text=Product` }}
               />
             </div>
-            {/* Thumbnails */}
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
               {thumbImages.map((src, i) => (
                 <button
@@ -98,7 +109,6 @@ export default function ProductDetailPage() {
 
           {/* Product Info */}
           <div className="bg-white rounded border border-border-col p-5">
-            {/* Stock */}
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <span className={`inline-flex items-center gap-1 text-sm font-medium ${product.stock > 0 ? 'text-success' : 'text-danger'}`}>
                 {product.stock > 0 ? '✓ In stock' : '✕ Out of stock'}
@@ -107,17 +117,15 @@ export default function ProductDetailPage() {
               <span className="text-sm text-text-muted">Category: {product.category}</span>
             </div>
 
-            {/* Title */}
             <h1 className="text-lg font-bold text-text-primary leading-snug mb-2">
               {product.name}
             </h1>
 
-            {/* Rating row */}
             <div className="flex items-center gap-3 text-sm text-text-muted mb-4">
               <StarRating rating={product.rating} size="md" />
               <span className="font-medium">{product.rating}</span>
               <span className="flex items-center gap-1">
-                💬 {32} reviews
+                💬 {product.reviews || 32} reviews
               </span>
               <span className="flex items-center gap-1">
                 🛒 {product.orders} sold
@@ -151,9 +159,8 @@ export default function ProductDetailPage() {
               <tbody>
                 {[
                   ['Price',         'Negotiable'],
-                  ['Type',          'Classic shoes'],
-                  ['Material',      'Plastic material'],
-                  ['Design',        'Modern nice'],
+                  ['Type',          product.category],
+                  ['Material',      product.specs?.Material || 'Premium material'],
                   ['Customization', 'Customized logo and design custom packages'],
                   ['Protection',    'Refund Policy'],
                   ['Warranty',      '2 years full warranty'],
@@ -212,9 +219,9 @@ export default function ProductDetailPage() {
             
             <div className="space-y-1.5 mb-4 text-sm">
               <div className="flex items-center gap-2 text-sm text-text-secondary">
-              <Flag code="DE" style={{ width: 16, height: 10, borderRadius: 1, objectFit: 'cover' }} />
-              <span>Germany, Berlin</span>
-            </div>
+                <Flag code="DE" style={{ width: 16, height: 10, borderRadius: 1, objectFit: 'cover' }} />
+                <span>Germany, Berlin</span>
+              </div>
               <div className="flex items-center gap-2 text-text-secondary">
                 <Shield size={14} className="text-success" /> Verified Seller
               </div>
@@ -223,8 +230,12 @@ export default function ProductDetailPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <button className="btn-primary w-full">Send inquiry</button>
-              <button className="btn-outline w-full">Seller's profile</button>
+              <button className="w-full bg-primary text-white py-2 rounded text-sm font-semibold hover:bg-primary-dark transition-colors">
+                Send inquiry
+              </button>
+              <button className="w-full border border-border-col text-text-secondary py-2 rounded text-sm font-medium hover:border-primary hover:text-primary transition-colors">
+                Seller's profile
+              </button>
             </div>
             <button
               onClick={() => setWishlisted(!wishlisted)}
@@ -242,15 +253,13 @@ export default function ProductDetailPage() {
 
         {/* ── Description + You may like ── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* Description tabs */}
           <div className="md:col-span-2 bg-white rounded border border-border-col overflow-hidden">
-            {/* Tab nav */}
-            <div className="flex border-b border-border-col">
+            <div className="flex border-b border-border-col overflow-x-auto scrollbar-hide">
               {tabs.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-5 py-3 text-sm font-medium capitalize transition-colors ${
+                  className={`px-4 sm:px-5 py-3 text-sm font-medium capitalize whitespace-nowrap transition-colors flex-shrink-0 ${
                     activeTab === tab
                       ? 'text-primary border-b-2 border-primary -mb-px bg-white'
                       : 'text-text-muted hover:text-text-primary'
@@ -267,13 +276,6 @@ export default function ProductDetailPage() {
                   <p className="text-sm text-text-secondary leading-relaxed">
                     {product.description}
                   </p>
-                  <p className="text-sm text-text-secondary leading-relaxed">
-                    Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.
-                  </p>
-
-                  {/* Specs table */}
                   {product.specs && (
                     <table className="w-full border border-border-col rounded text-sm overflow-hidden">
                       <tbody>
@@ -286,8 +288,6 @@ export default function ProductDetailPage() {
                       </tbody>
                     </table>
                   )}
-
-                  {/* Features list */}
                   {product.features && (
                     <ul className="space-y-1.5">
                       {product.features.map((f, i) => (
@@ -302,7 +302,7 @@ export default function ProductDetailPage() {
               {activeTab === 'reviews' && (
                 <div className="text-sm text-text-muted py-6 text-center">
                   <Star size={32} className="mx-auto mb-2 text-yellow-400" />
-                  <p>32 customer reviews — average rating {product.rating}/10</p>
+                  <p>{product.reviews || 32} customer reviews — average rating {product.rating}/10</p>
                 </div>
               )}
               {activeTab === 'shipping' && (
@@ -320,20 +320,22 @@ export default function ProductDetailPage() {
           <div className="bg-white rounded border border-border-col p-4 h-fit">
             <h3 className="font-semibold text-text-primary mb-3 text-sm">You may like</h3>
             <ul className="space-y-3">
-              {youMayLike.map((item, i) => (
-                <li key={i} className="flex gap-3 hover:bg-bg-light rounded p-1 cursor-pointer transition-colors">
-                  <div className="w-12 h-12 bg-bg-light rounded flex-shrink-0 overflow-hidden flex items-center justify-center">
-                    <img
-                      src={img(item.image)}
-                      alt={item.name}
-                      className="object-contain w-full h-full p-1"
-                      onError={(e) => { e.target.src = `https://placehold.co/48x48/f7f7f7/999?text=` }}
-                    />
-                  </div>
-                  <div>
-                    <p className="text-xs text-text-secondary leading-snug line-clamp-2">{item.name}</p>
-                    <p className="text-xs font-medium text-text-primary mt-0.5">{item.price}</p>
-                  </div>
+              {products.filter((p) => p.id !== product.id).slice(0, 5).map((item) => (
+                <li key={item.id}>
+                  <Link to={`/products/${item.id}`} className="flex gap-3 hover:bg-bg-light rounded p-1 transition-colors">
+                    <div className="w-12 h-12 bg-bg-light rounded flex-shrink-0 overflow-hidden flex items-center justify-center">
+                      <img
+                        src={img(item.image)}
+                        alt={item.name}
+                        className="object-contain w-full h-full p-1"
+                        onError={(e) => { e.target.src = `https://placehold.co/48x48/f7f7f7/999?text=` }}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-xs text-text-secondary leading-snug line-clamp-2">{item.name}</p>
+                      <p className="text-xs font-medium text-text-primary mt-0.5">{formatPrice(item.price)}</p>
+                    </div>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -341,31 +343,33 @@ export default function ProductDetailPage() {
         </div>
 
         {/* ── Related Products ── */}
-        <div className="bg-white rounded border border-border-col p-5">
-          <h2 className="font-bold text-text-primary mb-4">Related products</h2>
-          <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
-            {products.slice(0, 6).map((p) => (
-              <Link
-                key={p.id}
-                to={`/products/${p.id}`}
-                className="flex-shrink-0 w-40 group"
-              >
-                <div className="h-32 bg-bg-light rounded flex items-center justify-center overflow-hidden mb-2">
-                  <img
-                    src={img(p.image)}
-                    alt={p.name}
-                    className="object-contain w-full h-full p-3 group-hover:scale-105 transition-transform"
-                    onError={(e) => { e.target.src = `https://placehold.co/160x128/f7f7f7/999?text=Image` }}
-                  />
-                </div>
-                <p className="text-xs text-text-secondary line-clamp-2 leading-snug">{p.name}</p>
-                <p className="text-xs font-semibold text-text-primary mt-1">
-                  {formatPrice(p.price)} – {formatPrice((p.originalPrice || p.price * 1.5))}
-                </p>
-              </Link>
-            ))}
+        {relatedProducts.length > 0 && (
+          <div className="bg-white rounded border border-border-col p-5">
+            <h2 className="font-bold text-text-primary mb-4">Related products</h2>
+            <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+              {relatedProducts.map((p) => (
+                <Link
+                  key={p.id}
+                  to={`/products/${p.id}`}
+                  className="flex-shrink-0 w-40 group"
+                >
+                  <div className="h-32 bg-bg-light rounded flex items-center justify-center overflow-hidden mb-2">
+                    <img
+                      src={img(p.image)}
+                      alt={p.name}
+                      className="object-contain w-full h-full p-3 group-hover:scale-105 transition-transform"
+                      onError={(e) => { e.target.src = `https://placehold.co/160x128/f7f7f7/999?text=Image` }}
+                    />
+                  </div>
+                  <p className="text-xs text-text-secondary line-clamp-2 leading-snug">{p.name}</p>
+                  <p className="text-xs font-semibold text-text-primary mt-1">
+                    {formatPrice(p.price)}
+                  </p>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── Promo Banner ── */}
         <div className="mt-8">

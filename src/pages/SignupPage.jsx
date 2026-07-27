@@ -3,10 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { UserPlus } from 'lucide-react'
 import AuthLayout from '../components/AuthLayout'
 import FormInput from '../components/FormInput'
-
-function validateEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-}
+import { validateEmail } from '../utils/helpers'
 
 export default function SignupPage() {
   const navigate = useNavigate()

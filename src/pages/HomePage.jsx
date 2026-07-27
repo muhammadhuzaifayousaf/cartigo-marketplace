@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Send } from 'lucide-react'
 import Navbar from '../components/Navbar'
@@ -12,14 +12,6 @@ import {
 import { img, formatPrice } from '../utils/helpers'
 import Flag from "react-world-flags";
 
-const getFlagEmoji = (countryCode) =>
-  countryCode
-    .toUpperCase()
-    .replace(/./g, char =>
-      String.fromCodePoint(127397 + char.charCodeAt())
-    );
-
-// ── Section Header ────────────────────────────────────────────────────────────
 function SectionHeader({ title, subtitle, action }) {
   return (
     <div className="flex items-center justify-between mb-4">
@@ -32,12 +24,13 @@ function SectionHeader({ title, subtitle, action }) {
   )
 }
 
-// ── Home Page ─────────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const [featuredProducts] = useState(products.slice(0, 6))
+  const featuredProducts = useMemo(() => products.slice(0, 6), [])
   const navigate = useNavigate()
   const [userName, setUserName] = useState(() => localStorage.getItem('userName') || '')
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true')
+
+  const [inquiry, setInquiry] = useState({ item: '', details: '', quantity: '', unit: 'Pcs' })
 
   useEffect(() => {
     const checkAuth = () => {
@@ -57,7 +50,6 @@ export default function HomePage() {
 
         {/* ── Hero Section ── */}
         <section className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* Category sidebar — hidden on mobile */}
           <aside className="hidden lg:block bg-white rounded border border-border-col py-3">
             <ul>
               {heroCategories.map((cat) => (
@@ -74,7 +66,6 @@ export default function HomePage() {
             </ul>
           </aside>
 
-          {/* Center: hero banner */}
           <div className="lg:col-span-2 rounded overflow-hidden relative bg-teal-100 min-h-[220px] flex items-end">
             <img
               src={img('hero-banner.jpg')}
@@ -87,15 +78,13 @@ export default function HomePage() {
               <h1 className="text-2xl font-bold text-text-primary leading-tight mt-1">
                 Electronic items
               </h1>
-              <button className="mt-3 bg-white border border-border-col text-text-primary text-sm px-4 py-2 rounded hover:bg-bg-light transition-colors">
+              <Link to="/products" className="mt-3 inline-block bg-white border border-border-col text-text-primary text-sm px-4 py-2 rounded hover:bg-bg-light transition-colors">
                 Learn more
-              </button>
+              </Link>
             </div>
           </div>
 
-          {/* Right: user + promo cards */}
           <div className="flex flex-col gap-3">
-            {/* User card */}
             <div className="bg-primary rounded p-4 text-white text-sm">
               <div className="flex items-center gap-2 mb-3">
                 {isLoggedIn ? (
@@ -143,13 +132,11 @@ export default function HomePage() {
                 </div>
               )}
             </div>
-            {/* $10 off card */}
             <div className="bg-orange-400 rounded p-3 text-white text-sm">
               <div className="font-semibold text-sm leading-snug">
                 Get US $10 off<br />with a new supplier
               </div>
             </div>
-            {/* Send quotes card */}
             <div className="bg-teal-500 rounded p-3 text-white text-sm flex-1">
               <div className="font-semibold text-sm leading-snug">
                 Send quotes with<br />supplier preferences
@@ -202,7 +189,6 @@ export default function HomePage() {
             <CountdownTimer />
           </div>
 
-          {/* Deal products — horizontal scroll on mobile */}
           <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
             {dealProducts.map((item) => (
               <Link
@@ -221,7 +207,7 @@ export default function HomePage() {
                 <p className="text-xs text-text-secondary line-clamp-1">{item.name}</p>
                 {item.discount && (
                   <span className="inline-block mt-1 bg-danger text-white text-xs px-2 py-0.5 rounded-full">
-                    {item.discount}%
+                    {Math.abs(item.discount)}% off
                   </span>
                 )}
               </Link>
@@ -232,7 +218,6 @@ export default function HomePage() {
         {/* ── Home and Outdoor ── */}
         <section className="bg-white rounded border border-border-col overflow-hidden">
           <div className="flex">
-            {/* Left label */}
             <div className="hidden sm:flex flex-col justify-between bg-green-50 p-5 min-w-[160px] max-w-[180px]">
               <div>
                 <h2 className="font-bold text-text-primary">Home and outdoor</h2>
@@ -241,7 +226,6 @@ export default function HomePage() {
                 Source now <ArrowRight size={14} />
               </Link>
             </div>
-            {/* Products grid */}
             <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 border-l border-border-col">
               {homeOutdoorCategories.slice(0, 8).map((item, i) => (
                 <Link
@@ -254,7 +238,7 @@ export default function HomePage() {
                       src={img(item.image)}
                       alt={item.name}
                       className="object-contain w-full h-full p-1"
-                      onError={(e) => { e.target.src = `https://placehold.co/64x64/f7f7f7/999?text=📦` }}
+                      onError={(e) => { e.target.src = `https://placehold.co/64x64/f7f7f7/999?text=` }}
                     />
                   </div>
                   <p className="text-xs font-medium text-text-primary">{item.name}</p>
@@ -263,7 +247,6 @@ export default function HomePage() {
               ))}
             </div>
           </div>
-          {/* Mobile label */}
           <div className="sm:hidden flex items-center justify-between px-4 py-2 border-t border-border-col">
             <span className="font-semibold text-sm text-text-primary">Home and outdoor</span>
             <Link to="/products" className="text-primary text-sm flex items-center gap-1">
@@ -295,7 +278,7 @@ export default function HomePage() {
                       src={img(item.image)}
                       alt={item.name}
                       className="object-contain w-full h-full p-1"
-                      onError={(e) => { e.target.src = `https://placehold.co/64x64/f7f7f7/999?text=📦` }}
+                      onError={(e) => { e.target.src = `https://placehold.co/64x64/f7f7f7/999?text=` }}
                     />
                   </div>
                   <p className="text-xs font-medium text-text-primary">{item.name}</p>
@@ -314,73 +297,69 @@ export default function HomePage() {
 
         {/* ── Send Inquiry Banner ── */}
         <section className="relative overflow-hidden rounded-xl min-h-[420px]">
+          <img
+            src={img("inquiry-bg.jpg")}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#2C7CF1]/90 via-[#2C7CF1]/75 to-[#00B5FF]/30" />
 
-  {/* Background Image */}
-  <img
-    src={img("inquiry-bg.jpg")}
-    alt=""
-    className="absolute inset-0 w-full h-full object-cover"
-  />
+          <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 p-4 sm:p-6 lg:p-8">
+            <div className="text-white flex flex-col justify-center">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
+                An easy way to send requests to all suppliers
+              </h2>
+              <p className="mt-4 sm:mt-5 text-sm sm:text-base text-white/90 leading-6 sm:leading-7">
+                Browse thousands of products from verified suppliers worldwide.
+                Submit your requirements and receive competitive quotes within hours.
+              </p>
+            </div>
 
-  {/* Blue Overlay */}
-  <div className="absolute inset-0 bg-gradient-to-r from-[#2C7CF1]/90 via-[#2C7CF1]/75 to-[#00B5FF]/30" />
+            <div className="bg-white rounded-xl shadow-2xl p-4 sm:p-6 w-full">
+              <h3 className="font-bold text-xl mb-4 text-text-primary">
+                Send quote to suppliers
+              </h3>
 
-  <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 p-4 sm:p-6 lg:p-8">
+              <input
+                placeholder="What item you need?"
+                value={inquiry.item}
+                onChange={(e) => setInquiry({ ...inquiry, item: e.target.value })}
+                className="w-full border border-border-col rounded-lg px-4 py-3 mb-4 outline-none focus:border-primary text-sm"
+              />
 
-    {/* Left */}
-    <div className="text-white flex flex-col justify-center">
-      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
-        An easy way to send requests to all suppliers
-      </h2>
+              <textarea
+                rows="3"
+                placeholder="Type more details"
+                value={inquiry.details}
+                onChange={(e) => setInquiry({ ...inquiry, details: e.target.value })}
+                className="w-full border border-border-col rounded-lg px-4 py-3 mb-4 resize-none outline-none focus:border-primary text-sm"
+              />
 
-      <p className="mt-4 sm:mt-5 text-sm sm:text-base text-white/90 leading-6 sm:leading-7">
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit,
-        sed do eiusmod tempor incididunt.
-      </p>
-    </div>
+              <div className="flex gap-2 sm:gap-3 mb-5">
+                <input
+                  placeholder="Quantity"
+                  value={inquiry.quantity}
+                  onChange={(e) => setInquiry({ ...inquiry, quantity: e.target.value })}
+                  className="flex-1 border border-border-col rounded-lg px-3 sm:px-4 py-3 text-sm outline-none focus:border-primary"
+                />
+                <select
+                  value={inquiry.unit}
+                  onChange={(e) => setInquiry({ ...inquiry, unit: e.target.value })}
+                  className="sm:w-28 px-2 sm:px-3 py-3 border border-border-col rounded-lg bg-white text-sm outline-none focus:border-primary"
+                >
+                  <option>Pcs</option>
+                  <option>Kg</option>
+                  <option>Box</option>
+                </select>
+              </div>
 
-    {/* Right Card */}
-    <div className="bg-white rounded-xl shadow-2xl p-4 sm:p-6 w-full">
-
-      <h3 className="font-bold text-xl mb-4">
-        Send quote to suppliers
-      </h3>
-
-      <input
-        placeholder="What item you need?"
-        className="w-full border rounded-lg px-4 py-3 mb-4 outline-none focus:ring-2 focus:ring-blue-500"
-      />
-
-      <textarea
-        rows="3"
-        placeholder="Type more details"
-        className="w-full border rounded-lg px-4 py-3 mb-4 resize-none outline-none focus:ring-2 focus:ring-blue-500"
-      />
-
-      <div className="flex gap-2 sm:gap-3 mb-5">
-
-        <input
-          placeholder="Quantity"
-          className="flex-1 border rounded-lg px-3 sm:px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <select className="sm:w-28 px-2 sm:px-3 py-3 border rounded-lg bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500">
-          <option>Pcs</option>
-          <option>Kg</option>
-          <option>Box</option>
-        </select>
-
-      </div>
-
-      <button className="bg-[#127FFF] hover:bg-[#0067FF] text-white rounded-lg px-7 py-3 font-medium flex items-center gap-2 transition">
-        <Send size={18} />
-        Send inquiry
-      </button>
-
-    </div>
-
-  </div>
-</section>
+              <button className="bg-primary hover:bg-primary-dark text-white rounded-lg px-7 py-3 font-medium flex items-center gap-2 transition-colors">
+                <Send size={18} />
+                Send inquiry
+              </button>
+            </div>
+          </div>
+        </section>
 
         {/* ── Recommended Items ── */}
         <section>
@@ -436,15 +415,15 @@ export default function HomePage() {
                 className="flex items-center gap-2 p-2 rounded hover:bg-bg-light transition-colors group"
               >
                 <Flag
-  code={s.code}
-  style={{
-    width: "28px",
-    height: "20px",
-    borderRadius: "2px",
-    objectFit: "cover",
-    flexShrink: 0,
-  }}
-/>
+                  code={s.code}
+                  style={{
+                    width: "28px",
+                    height: "20px",
+                    borderRadius: "2px",
+                    objectFit: "cover",
+                    flexShrink: 0,
+                  }}
+                />
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-text-primary truncate">{s.country}</p>
                   <p className="text-xs text-text-muted truncate">{s.domain}</p>
