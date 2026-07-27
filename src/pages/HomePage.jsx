@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Send } from 'lucide-react'
 import Navbar from '../components/Navbar'
@@ -7,8 +7,8 @@ import CountdownTimer from '../components/CountdownTimer'
 import {
   heroCategories, dealProducts, homeOutdoorCategories,
   electronicsCategories, recommendedProducts, suppliersRegion,
-  products,
 } from '../data/products'
+import { fetchProducts } from '../services/api'
 import { img, formatPrice } from '../utils/helpers'
 import Flag from "react-world-flags";
 
@@ -25,7 +25,7 @@ function SectionHeader({ title, subtitle, action }) {
 }
 
 export default function HomePage() {
-  const featuredProducts = useMemo(() => products.slice(0, 6), [])
+  const [featuredProducts, setFeaturedProducts] = useState([])
   const navigate = useNavigate()
   const [userName, setUserName] = useState(() => localStorage.getItem('userName') || '')
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true')
@@ -40,6 +40,20 @@ export default function HomePage() {
     window.addEventListener('storage', checkAuth)
     checkAuth()
     return () => window.removeEventListener('storage', checkAuth)
+  }, [])
+
+  // Fetch featured products from backend API
+  useEffect(() => {
+    const loadFeatured = async () => {
+      try {
+        const data = await fetchProducts()
+        setFeaturedProducts(data.slice(0, 6))
+      } catch (err) {
+        console.error('Failed to load featured products:', err)
+        // Fallback: show empty state gracefully — UI stays intact
+      }
+    }
+    loadFeatured()
   }, [])
 
   return (

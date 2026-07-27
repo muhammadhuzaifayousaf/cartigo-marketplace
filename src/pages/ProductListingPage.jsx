@@ -1,11 +1,11 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { LayoutGrid, List, SlidersHorizontal, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { LayoutGrid, List, SlidersHorizontal, ChevronLeft, ChevronRight, X, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import FilterSidebar from '../components/FilterSidebar'
 import ProductCard from '../components/ProductCard'
-import { products } from '../data/products'
+import { fetchProducts } from '../services/api'
 
 function FilterChip({ label, onRemove }) {
   return (
@@ -64,6 +64,35 @@ function Pagination({ currentPage, totalPages, onChange, itemsPerPage, onItemsPe
   )
 }
 
+// ── Loading Spinner ────────────────────────────────────────────────────────
+function LoadingSpinner() {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-text-muted">
+      <Loader2 size={40} className="animate-spin text-primary mb-3" />
+      <p className="text-sm">Loading products...</p>
+    </div>
+  )
+}
+
+// ── Error State ────────────────────────────────────────────────────────────
+function ErrorState({ message, onRetry }) {
+  return (
+    <div className="bg-white rounded border border-border-col p-12 text-center">
+      <AlertCircle size={40} className="mx-auto mb-3 text-danger" />
+      <p className="text-lg font-medium text-text-primary mb-1">Unable to load products</p>
+      <p className="text-sm text-text-muted mb-4">{message || 'Please try again later.'}</p>
+      <button
+        onClick={onRetry}
+        className="btn-primary inline-flex items-center gap-2"
+      >
+        <RefreshCw size={14} />
+        Retry
+      </button>
+    </div>
+  )
+}
+
+// ── Product Listing Page ───────────────────────────────────────────────────
 export default function ProductListingPage() {
   const [viewMode, setViewMode]           = useState('grid')
   const [sortBy, setSortBy]               = useState('featured')
@@ -76,6 +105,11 @@ export default function ProductListingPage() {
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
   const [selectedCategory, setSelectedCategory] = useState('All')
 
+  // ── Backend data state ──
+  const [products, setProducts]           = useState([])
+  const [loading, setLoading]             = useState(true)
+  const [error, setError]                 = useState(null)
+
   const [filters, setFilters] = useState({
     brands: [],
     features: [],
@@ -85,7 +119,28 @@ export default function ProductListingPage() {
     price: { min: 0, max: 999999 },
   })
 
+  // Derive categories from fetched products
   const categories = ['All', ...new Set(products.map((product) => product.category))]
+
+  // ── Fetch products from backend API ──
+  const loadProducts = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await fetchProducts()
+      setProducts(data)
+    } catch (err) {
+      console.error('Failed to fetch products:', err)
+      setError(err.response?.data?.message || err.message || 'Failed to fetch products')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // Fetch on component mount
+  useEffect(() => {
+    loadProducts()
+  }, [loadProducts])
 
   useEffect(() => {
     const query = searchParams.get('q') || ''
@@ -125,7 +180,7 @@ export default function ProductListingPage() {
     }
 
     return list
-  }, [searchTerm, selectedCategory, filters, sortBy, verifiedOnly])
+  }, [searchTerm, selectedCategory, filters, sortBy, verifiedOnly, products])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage))
   const paginated  = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
@@ -279,43 +334,51 @@ export default function ProductListingPage() {
               </div>
             )}
 
-            {/* Products */}
-            {paginated.length === 0 ? (
-              <div className="bg-white rounded border border-border-col p-12 text-center text-text-muted">
-                <p className="text-lg mb-1">No products found</p>
-                <p className="text-sm">Try adjusting your filters or search query</p>
-                <button onClick={clearAll} className="bg-primary text-white mt-4 px-6 py-2 rounded text-sm font-semibold hover:bg-primary-dark transition-colors">
-                  Clear all filters
-                </button>
-              </div>
-            ) : viewMode === 'grid' ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {paginated.map((p) => (
-                  <ProductCard
-                    key={p.id}
-                    product={p}
-                    mode="grid"
-                    wishlistIds={wishlistIds}
-                    onWishlist={toggleWishlist}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {paginated.map((p) => (
-                  <ProductCard
-                    key={p.id}
-                    product={p}
-                    mode="list"
-                    wishlistIds={wishlistIds}
-                    onWishlist={toggleWishlist}
-                  />
-                ))}
-              </div>
+            {/* ── Loading State ── */}
+            {loading && <LoadingSpinner />}
+
+            {/* ── Error State ── */}
+            {!loading && error && <ErrorState message={error} onRetry={loadProducts} />}
+
+            {/* ── Products ── */}
+            {!loading && !error && (
+              paginated.length === 0 ? (
+                <div className="bg-white rounded border border-border-col p-12 text-center text-text-muted">
+                  <p className="text-lg mb-1">No products found</p>
+                  <p className="text-sm">Try adjusting your filters or search query</p>
+                  <button onClick={clearAll} className="bg-primary text-white mt-4 px-6 py-2 rounded text-sm font-semibold hover:bg-primary-dark transition-colors">
+                    Clear all filters
+                  </button>
+                </div>
+              ) : viewMode === 'grid' ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {paginated.map((p) => (
+                    <ProductCard
+                      key={p.id}
+                      product={p}
+                      mode="grid"
+                      wishlistIds={wishlistIds}
+                      onWishlist={toggleWishlist}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {paginated.map((p) => (
+                    <ProductCard
+                      key={p.id}
+                      product={p}
+                      mode="list"
+                      wishlistIds={wishlistIds}
+                      onWishlist={toggleWishlist}
+                    />
+                  ))}
+                </div>
+              )
             )}
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {!loading && !error && totalPages > 1 && (
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

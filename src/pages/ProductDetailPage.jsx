@@ -1,44 +1,135 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { Heart, ShoppingCart, Star, Shield, Globe } from 'lucide-react'
+import { Heart, ShoppingCart, Star, Shield, Globe, ChevronLeft, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import StarRating from '../components/StarRating'
 import PromoBanner from '../components/PromoBanner'
-import { products } from '../data/products'
+import { fetchProductById, fetchProducts } from '../services/api'
 import { img, formatPrice } from '../utils/helpers'
 import { useCart } from '../context/CartContext'
 import { useToast } from '../context/ToastContext'
 import Flag from 'react-world-flags'
 
+// "You may like" sidebar items (static data matching design)
+const youMayLike = [
+  { name: 'Men Blazers Sets Elegant Formal', price: '$7.00 - $99.50',  image: 'tshirt.jpg' },
+  { name: 'Men Shirt Sleeve Polo Contrast',  price: '$7.00 - $99.50',  image: 'tshirt.jpg' },
+  { name: 'Apple Watch Series Space Gray',   price: '$7.00 - $99.50',  image: 'smartwatch.jpg' },
+  { name: 'Basketball Crew Socks Long Stuff',price: '$7.00 - $99.50',  image: 'tshirt.jpg' },
+  { name: "New Summer Men's castrol T-Shirts", price: '$7.00 - $99.50', image: 'backpack.jpg' },
+]
+
+// ── Loading Spinner ────────────────────────────────────────────────────────
+function LoadingSpinner() {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-text-muted">
+      <Loader2 size={40} className="animate-spin text-primary mb-3" />
+      <p className="text-sm">Loading product details...</p>
+    </div>
+  )
+}
+
+// ── Error State ────────────────────────────────────────────────────────────
+function ErrorState({ message, onRetry }) {
+  return (
+    <div className="bg-white rounded border border-border-col p-12 text-center">
+      <AlertCircle size={40} className="mx-auto mb-3 text-danger" />
+      <p className="text-lg font-medium text-text-primary mb-1">Unable to load product</p>
+      <p className="text-sm text-text-muted mb-4">{message || 'The product could not be found.'}</p>
+      <div className="flex items-center justify-center gap-3">
+        <button
+          onClick={onRetry}
+          className="btn-primary inline-flex items-center gap-2"
+        >
+          <RefreshCw size={14} />
+          Retry
+        </button>
+        <Link to="/products" className="btn-outline">
+          Back to Products
+        </Link>
+      </div>
+    </div>
+  )
+}
+
 export default function ProductDetailPage() {
   const { id }     = useParams()
   const navigate   = useNavigate()
-  const product    = products.find((p) => p.id === Number(id))
   const { addItem } = useCart()
   const showToast = useToast()
+
+  // ── Backend data state ──
+  const [product, setProduct]           = useState(null)
+  const [relatedProducts, setRelatedProducts] = useState([])
+  const [loading, setLoading]           = useState(true)
+  const [error, setError]               = useState(null)
 
   const [activeImg,     setActiveImg]     = useState(0)
   const [activeTab,     setActiveTab]     = useState('description')
   const [wishlisted,    setWishlisted]    = useState(false)
   const [qty,           setQty]           = useState(1)
 
-  if (!product) {
+  // ── Fetch single product + all products for related section ──
+  const loadProduct = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      // Fetch the single product and all products in parallel
+      const [productData, allProducts] = await Promise.all([
+        fetchProductById(id),
+        fetchProducts(),
+      ])
+      setProduct(productData)
+      // Related products: exclude current product, take first 6
+      setRelatedProducts(allProducts.filter((p) => p.id !== productData.id).slice(0, 6))
+    } catch (err) {
+      console.error('Failed to fetch product:', err)
+      if (err.response?.status === 404) {
+        setError('Product not found. It may have been removed.')
+      } else {
+        setError(err.response?.data?.message || err.message || 'Failed to load product')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [id])
+
+  useEffect(() => {
+    loadProduct()
+    // Reset scroll and state when navigating to a different product
+    window.scrollTo(0, 0)
+    setActiveImg(0)
+    setActiveTab('description')
+    setWishlisted(false)
+    setQty(1)
+  }, [loadProduct])
+
+  // ── Loading State ──
+  if (loading) {
     return (
       <div className="min-h-screen bg-bg-light">
         <Navbar />
-        <div className="flex flex-col items-center justify-center py-32 px-4 text-center">
-          <h1 className="text-4xl font-bold text-text-primary mb-4">Product Not Found</h1>
-          <p className="text-text-muted mb-6">The product you're looking for doesn't exist.</p>
-          <Link to="/products" className="bg-primary text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors">
-            Browse Products
-          </Link>
+        <LoadingSpinner />
+        <Footer />
+      </div>
+    )
+  }
+
+  // ── Error State ──
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-bg-light">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 py-10">
+          <ErrorState message={error} onRetry={loadProduct} />
         </div>
         <Footer />
       </div>
     )
   }
 
+  // Thumbnail images — use the same image for all (user replaces with actual thumbnails)
   const thumbImages = Array(6).fill(product.image)
   const tabs = ['description', 'reviews', 'shipping', 'about seller']
 
@@ -47,17 +138,6 @@ export default function ProductDetailPage() {
     { range: '50-99 pcs',  price: Math.round(product.price * 0.92 * 100) / 100 },
     { range: '100+ pcs',   price: Math.round(product.price * 0.82 * 100) / 100 },
   ]
-
-  const relatedProducts = products
-    .filter((p) => p.category === product.category && p.id !== product.id)
-    .slice(0, 6)
-
-  if (relatedProducts.length < 6) {
-    const extras = products
-      .filter((p) => p.id !== product.id && !relatedProducts.find((r) => r.id === p.id))
-      .slice(0, 6 - relatedProducts.length)
-    relatedProducts.push(...extras)
-  }
 
   return (
     <div className="min-h-screen bg-bg-light">
@@ -128,7 +208,7 @@ export default function ProductDetailPage() {
                 💬 {product.reviews || 32} reviews
               </span>
               <span className="flex items-center gap-1">
-                🛒 {product.orders} sold
+                🛒 {product.orders || 120} sold
               </span>
             </div>
 
@@ -276,7 +356,14 @@ export default function ProductDetailPage() {
                   <p className="text-sm text-text-secondary leading-relaxed">
                     {product.description}
                   </p>
-                  {product.specs && (
+                  <p className="text-sm text-text-secondary leading-relaxed">
+                    Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+                    fugiat nulla pariatur.
+                  </p>
+
+                  {/* Specs table */}
+                  {product.specs && Object.keys(product.specs).length > 0 && (
                     <table className="w-full border border-border-col rounded text-sm overflow-hidden">
                       <tbody>
                         {Object.entries(product.specs).map(([k, v]) => (
@@ -288,7 +375,9 @@ export default function ProductDetailPage() {
                       </tbody>
                     </table>
                   )}
-                  {product.features && (
+
+                  {/* Features list */}
+                  {product.features && product.features.length > 0 && (
                     <ul className="space-y-1.5">
                       {product.features.map((f, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-text-secondary">
@@ -320,7 +409,7 @@ export default function ProductDetailPage() {
           <div className="bg-white rounded border border-border-col p-4 h-fit">
             <h3 className="font-semibold text-text-primary mb-3 text-sm">You may like</h3>
             <ul className="space-y-3">
-              {products.filter((p) => p.id !== product.id).slice(0, 5).map((item) => (
+              {relatedProducts.filter((p) => p.id !== product.id).slice(0, 5).map((item) => (
                 <li key={item.id}>
                   <Link to={`/products/${item.id}`} className="flex gap-3 hover:bg-bg-light rounded p-1 transition-colors">
                     <div className="w-12 h-12 bg-bg-light rounded flex-shrink-0 overflow-hidden flex items-center justify-center">
@@ -363,7 +452,7 @@ export default function ProductDetailPage() {
                   </div>
                   <p className="text-xs text-text-secondary line-clamp-2 leading-snug">{p.name}</p>
                   <p className="text-xs font-semibold text-text-primary mt-1">
-                    {formatPrice(p.price)}
+                    {formatPrice(p.price)} – {formatPrice((p.originalPrice || p.price * 1.5))}
                   </p>
                 </Link>
               ))}
