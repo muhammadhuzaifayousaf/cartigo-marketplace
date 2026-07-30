@@ -1,16 +1,18 @@
-# 🛒 React eCommerce Frontend
+# 🛒 Cartiqo React eCommerce
 
-A modern and fully responsive **eCommerce web application** built with **React**, **Vite**, and **Tailwind CSS**. The project recreates a professional online shopping experience with a clean UI, reusable components, product browsing, a fully functional shopping cart with global state management and localStorage persistence, authentication pages with real-time form validation, a checkout flow with protected routes, and responsive layouts optimized for desktop, tablet, and mobile devices.
+A modern and fully responsive **eCommerce web application** built with **React**, **Vite**, **Tailwind CSS**, and a **Node.js + Express + MongoDB Atlas** backend. The project recreates a professional online shopping experience with a clean UI, reusable components, product browsing, a fully functional shopping cart with global state management and localStorage persistence, authentication pages with real-time form validation, a checkout flow with protected routes, live REST API endpoints, and responsive layouts optimized for desktop, tablet, and mobile devices.
 
 <p align="center">
   <a href="https://muhammadhuzaifayousaf.github.io/ecommerce-frontend/">
-    <img src="https://github.com/user-attachments/assets/b8a8fcb6-17f0-422d-9823-0f0f3a465951" alt="React eCommerce Frontend Preview" width="100%">
+    <img src="https://github.com/user-attachments/assets/746f9170-e5c1-4448-b183-9682cf0dc36c" alt="React eCommerce Preview" width="100%">
   </a>
 </p>
 
 ## 🚀 Live Demo
 
 🔗 **https://muhammadhuzaifayousaf.github.io/ecommerce-frontend/**
+
+> **Note:** The live demo reflects the frontend-only build (Weeks 1–4). Week 5 backend integration (API + MongoDB) requires a running Node.js server and is not deployed to GitHub Pages.
 
 ## 📖 Project Documentation
 
@@ -29,6 +31,10 @@ A modern and fully responsive **eCommerce web application** built with **React**
 ### Week 4 Documentation
 - 📄 **Week 4 Report / Assignment:** https://drive.google.com/file/d/1MDBP3lRaihF9iZ7qHJVLaUu3GQW1EwBm/
 - Covers UI forms, frontend validation, authentication pages (Login/Signup), checkout flow, protected routes, toast notifications, and success feedback.
+
+### Week 5 Documentation
+- 📄 **Week 5 Report / Assignment:** https://drive.google.com/file/d/16UFGLUIaHY3NQKRYEZGl_MjAulVNoxPy/
+- Covers backend setup (Node.js + Express + MongoDB Atlas), REST API endpoints (GET /api/products, GET /api/products/:id), axios frontend integration, loading/error states, dynamic hostname for mobile access, and the About page.
 
 ## ✨ Features
 
@@ -89,6 +95,18 @@ A modern and fully responsive **eCommerce web application** built with **React**
 - Page reload on login/signup for clean state hydration
 - Mobile search bar fix — category dropdown hidden on small screens, icon never clips
 
+### Week 5 Enhancements
+- Node.js + Express 5.x backend server on port 5000 with CORS and dotenv
+- MongoDB Atlas connection via Mongoose 9.x with auto-seed of 14 products across 5 categories
+- `GET /api/health` — health-check endpoint
+- `GET /api/products` — fetch all products with try/catch error handling
+- `GET /api/products/:id` — single product lookup with 400 (invalid ID) and 404 (not found) responses
+- Axios service layer (`src/services/api.js`) with `fetchProducts()` and `fetchProductById()`
+- Dynamic hostname resolution (`window.location.hostname`) for mobile devices on the same network
+- Loading spinner (Loader2) and error-retry UI on Home, Product Listing, and Product Detail pages
+- About page — hero, mission/vision, company story, journey timeline, feature cards, offices, founder card, CTA
+- All existing Week 1–4 functionality continues to work without regressions
+
 ## 📄 Pages
 
 | Page | Route | Description |
@@ -100,6 +118,7 @@ A modern and fully responsive **eCommerce web application** built with **React**
 | Login | `/login` | Email/password auth with validation and show/hide toggle |
 | Signup | `/signup` | Registration form with confirm password and validation |
 | Checkout | `/checkout` | Shipping form + order summary (protected — requires login) |
+| About | `/about` | Company info, mission/vision, timeline, features, offices, founder |
 
 ## 🛠️ Tech Stack
 
@@ -110,10 +129,16 @@ A modern and fully responsive **eCommerce web application** built with **React**
 * **React Router DOM** (HashRouter)
 * **Lucide React**
 * **React World Flags**
+* **axios** (API requests)
 * **localStorage** (auth + cart persistence)
-* **GitHub Pages**
+* **Node.js / Express 5.x** (backend server)
+* **Mongoose 9.x** (MongoDB ODM)
+* **MongoDB Atlas** (cloud database)
+* **GitHub Pages** (Week 1–4 frontend only)
 
 ## ⚙️ Installation
+
+### Frontend
 
 ```bash
 git clone https://github.com/muhammadhuzaifayousaf/ecommerce-frontend.git
@@ -124,6 +149,21 @@ npm install
 
 npm run dev
 ```
+
+### Backend
+
+```bash
+cd backend
+
+npm install
+
+# Create .env file with your MongoDB Atlas URI:
+# MONGO_URI=mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/ecommerce?retryWrites=true&w=majority
+
+node server.js
+```
+
+The backend runs on **http://localhost:5000**. Make sure MongoDB Atlas is whitelisted to accept connections from your IP address.
 
 ## 👨‍💻 Author
 
