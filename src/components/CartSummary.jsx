@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import { formatPrice } from "../utils/helpers";
 
 export default function CartSummary() {
   const { subtotal } = useCart();
+  const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const [coupon, setCoupon] = useState("");
 
@@ -50,7 +52,6 @@ export default function CartSummary() {
 
       <button
         onClick={() => {
-          const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
           if (!isLoggedIn) {
             navigate("/login", { state: { from: "/checkout" } });
             return;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ShoppingCart, User, MessageSquare, Package,
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { navCategories } from '../data/products'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import { img } from '../utils/helpers'
 
 function Logo() {
@@ -63,36 +64,19 @@ function IconBtn({ icon: Icon, label, to, badge }) {
   )
 }
 
-function useAuth() {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true')
-  const [userName, setUserName] = useState(() => localStorage.getItem('userName') || '')
-
-  useEffect(() => {
-    const onStorage = () => {
-      setIsLoggedIn(localStorage.getItem('isLoggedIn') === 'true')
-      setUserName(localStorage.getItem('userName') || '')
-    }
-    window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
-  }, [])
-
-  return { isLoggedIn, userName }
-}
-
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { totalItems } = useCart()
   const navigate = useNavigate()
-  const { isLoggedIn, userName } = useAuth()
+  const { isLoggedIn, user, logout } = useAuth()
 
   const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn')
-    localStorage.removeItem('userName')
+    logout()
     setMobileOpen(false)
     navigate('/')
-    window.location.reload()
   }
 
+  const userName = user?.name || ''
   const userInitial = userName ? userName.charAt(0).toUpperCase() : 'U'
 
   return (

@@ -3,10 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { UserPlus } from 'lucide-react'
 import AuthLayout from '../components/AuthLayout'
 import FormInput from '../components/FormInput'
+import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { validateEmail } from '../utils/helpers'
 
 export default function SignupPage() {
   const navigate = useNavigate()
+  const { register } = useAuth()
+  const showToast = useToast()
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -56,25 +60,16 @@ export default function SignupPage() {
     }
 
     setIsSubmitting(true)
-    await new Promise((res) => setTimeout(res, 600))
-
-    const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]')
-    const exists = registeredUsers.some((u) => u.email === form.email)
-    if (exists) {
-      setErrors({ email: 'An account with this email already exists' })
+    try {
+      await register(form.name, form.email, form.password)
+      showToast('Registration Successful')
+      navigate('/login')
+    } catch (error) {
+      const message = error.response?.data?.message || 'Registration failed'
+      setErrors({ email: message })
+    } finally {
       setIsSubmitting(false)
-      return
     }
-
-    registeredUsers.push({
-      name: form.name.trim(),
-      email: form.email.trim(),
-      password: form.password,
-    })
-    localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers))
-
-    setIsSubmitting(false)
-    navigate('/login')
   }
 
   return (

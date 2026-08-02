@@ -3,16 +3,23 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { LogIn, AlertCircle } from 'lucide-react'
 import AuthLayout from '../components/AuthLayout'
 import FormInput from '../components/FormInput'
+import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { validateEmail } from '../utils/helpers'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { login } = useAuth()
+  const notify = useToast()
   const [form, setForm] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
   const [rememberMe, setRememberMe] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showToast, setShowToast] = useState(false)
+
+  const redirectTo = location.state?.from
+  const loginPrompt = redirectTo === '/checkout' ? 'Please login before checkout.' : 'Please login to continue.'
 
   useEffect(() => {
     if (location.state?.showToast) {
@@ -54,25 +61,16 @@ export default function LoginPage() {
     }
 
     setIsSubmitting(true)
-    await new Promise((res) => setTimeout(res, 600))
-
-    const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]')
-    const user = registeredUsers.find(
-      (u) => u.email === form.email && u.password === form.password
-    )
-
-    if (!user) {
-      setErrors({ email: 'Invalid email or password' })
+    try {
+      await login(form.email, form.password)
+      notify('Login Successful')
+      navigate(location.state?.from || '/')
+    } catch (error) {
+      const message = error.response?.data?.message || 'Invalid email or password'
+      setErrors({ email: message })
+    } finally {
       setIsSubmitting(false)
-      return
     }
-
-    localStorage.setItem('isLoggedIn', 'true')
-    localStorage.setItem('userName', user.name)
-
-    setIsSubmitting(false)
-    navigate(location.state?.from || '/')
-    window.location.reload()
   }
 
   return (
@@ -81,7 +79,7 @@ export default function LoginPage() {
         <div className="fixed top-4 right-4 z-[100] animate-fadeIn">
           <div className="flex items-center gap-3 bg-warning/10 border border-warning/30 text-warning px-4 py-3 rounded-lg shadow-lg">
             <AlertCircle size={20} />
-            <span className="text-sm font-medium">Please login before checkout.</span>
+            <span className="text-sm font-medium">{loginPrompt}</span>
           </div>
         </div>
       )}

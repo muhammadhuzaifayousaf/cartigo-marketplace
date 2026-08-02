@@ -13,6 +13,15 @@ const api = axios.create({
   },
 });
 
+// Attach the stored JWT to every request automatically
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 /**
  * Transform a product from the backend to match frontend expectations.
  * Maps MongoDB's _id to a string `id` field so existing component
@@ -41,6 +50,36 @@ export const fetchProducts = async () => {
 export const fetchProductById = async (id) => {
   const response = await api.get(`/products/${id}`);
   return transformProduct(response.data.data);
+};
+
+/**
+ * Register a new user.
+ * @param {Object} userData - { name, email, password }
+ * @returns {Promise<Object>} Auth payload { _id, name, email, token }
+ */
+export const registerUser = async (userData) => {
+  const response = await api.post('/auth/register', userData);
+  return response.data.data;
+};
+
+/**
+ * Log in an existing user.
+ * @param {Object} credentials - { email, password }
+ * @returns {Promise<Object>} Auth payload { _id, name, email, token }
+ */
+export const loginUser = async (credentials) => {
+  const response = await api.post('/auth/login', credentials);
+  return response.data.data;
+};
+
+/**
+ * Place a new order.
+ * @param {Object} orderData - { items, shippingAddress }
+ * @returns {Promise<Object>} The created order document
+ */
+export const createOrder = async (orderData) => {
+  const response = await api.post('/orders', orderData);
+  return response.data.data;
 };
 
 export default api;

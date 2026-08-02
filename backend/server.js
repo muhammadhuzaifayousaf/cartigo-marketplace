@@ -7,6 +7,8 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const productRoutes = require('./routes/productRoutes');
+const authRoutes = require('./routes/authRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 // Load environment variables from .env
 dotenv.config();
@@ -20,10 +22,21 @@ app.use(cors());               // Enable Cross-Origin Resource Sharing
 
 // ── Routes ──
 app.use('/api/products', productRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({ success: true, message: 'Server is running' });
+});
+
+// ── Error Handler ──
+app.use((err, req, res, next) => {
+  console.error(`Unhandled error: ${err.message}`);
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || 'Server error',
+  });
 });
 
 // ── Start Server ──

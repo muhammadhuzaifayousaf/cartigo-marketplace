@@ -5,10 +5,11 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import CountdownTimer from '../components/CountdownTimer'
 import {
-  heroCategories, dealProducts, homeOutdoorCategories,
-  electronicsCategories, recommendedProducts, suppliersRegion,
+  heroCategories, homeOutdoorCategories,
+  electronicsCategories, suppliersRegion,
 } from '../data/products'
 import { fetchProducts } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 import { img, formatPrice } from '../utils/helpers'
 import Flag from "react-world-flags";
 
@@ -25,28 +26,20 @@ function SectionHeader({ title, subtitle, action }) {
 }
 
 export default function HomePage() {
+  const [allProducts, setAllProducts] = useState([])
   const [featuredProducts, setFeaturedProducts] = useState([])
   const navigate = useNavigate()
-  const [userName, setUserName] = useState(() => localStorage.getItem('userName') || '')
-  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true')
+  const { isLoggedIn, user } = useAuth()
+  const userName = user?.name || ''
 
   const [inquiry, setInquiry] = useState({ item: '', details: '', quantity: '', unit: 'Pcs' })
-
-  useEffect(() => {
-    const checkAuth = () => {
-      setIsLoggedIn(localStorage.getItem('isLoggedIn') === 'true')
-      setUserName(localStorage.getItem('userName') || '')
-    }
-    window.addEventListener('storage', checkAuth)
-    checkAuth()
-    return () => window.removeEventListener('storage', checkAuth)
-  }, [])
 
   // Fetch featured products from backend API
   useEffect(() => {
     const loadFeatured = async () => {
       try {
         const data = await fetchProducts()
+        setAllProducts(data)
         setFeaturedProducts(data.slice(0, 6))
       } catch (err) {
         console.error('Failed to load featured products:', err)
@@ -55,6 +48,11 @@ export default function HomePage() {
     }
     loadFeatured()
   }, [])
+
+  // Deals: products currently on sale (originalPrice > price)
+  const deals = allProducts.filter((p) => p.originalPrice > p.price)
+  // Recommended: remaining products after the featured set
+  const recommended = allProducts.slice(6, 16)
 
   return (
     <div className="min-h-screen bg-bg-light">
@@ -204,28 +202,33 @@ export default function HomePage() {
           </div>
 
           <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
-            {dealProducts.map((item) => (
-              <Link
-                key={item.id}
-                to={`/products/${item.id}`}
-                className="flex-shrink-0 w-40 text-center group"
-              >
-                <div className="bg-bg-light rounded-lg h-32 flex items-center justify-center overflow-hidden mb-2">
-                  <img
-                    src={img(item.image)}
-                    alt={item.name}
-                    className="object-contain w-full h-full p-3 group-hover:scale-105 transition-transform"
-                    onError={(e) => { e.target.src = `https://placehold.co/160x128/f7f7f7/999?text=Image` }}
-                  />
-                </div>
-                <p className="text-xs text-text-secondary line-clamp-1">{item.name}</p>
-                {item.discount && (
-                  <span className="inline-block mt-1 bg-danger text-white text-xs px-2 py-0.5 rounded-full">
-                    {Math.abs(item.discount)}% off
-                  </span>
-                )}
-              </Link>
-            ))}
+            {deals.map((item) => {
+              const discountPct = item.originalPrice > item.price
+                ? Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)
+                : 0
+              return (
+                <Link
+                  key={item.id}
+                  to={`/products/${item.id}`}
+                  className="flex-shrink-0 w-40 text-center group"
+                >
+                  <div className="bg-bg-light rounded-lg h-32 flex items-center justify-center overflow-hidden mb-2">
+                    <img
+                      src={img(item.image)}
+                      alt={item.name}
+                      className="object-contain w-full h-full p-3 group-hover:scale-105 transition-transform"
+                      onError={(e) => { e.target.src = `https://placehold.co/160x128/f7f7f7/999?text=Image` }}
+                    />
+                  </div>
+                  <p className="text-xs text-text-secondary line-clamp-1">{item.name}</p>
+                  {discountPct > 0 && (
+                    <span className="inline-block mt-1 bg-danger text-white text-xs px-2 py-0.5 rounded-full">
+                      {discountPct}% off
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
           </div>
         </section>
 
@@ -379,7 +382,7 @@ export default function HomePage() {
         <section>
           <SectionHeader title="Recommended items" />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {recommendedProducts.map((p) => (
+            {recommended.map((p) => (
               <Link
                 key={p.id}
                 to={`/products/${p.id}`}

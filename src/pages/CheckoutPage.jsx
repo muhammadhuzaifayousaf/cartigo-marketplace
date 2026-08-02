@@ -4,8 +4,9 @@ import { ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import FormInput from '../components/FormInput'
-import SuccessModal from '../components/SuccessModal'
 import { useCart } from '../context/CartContext'
+import { useToast } from '../context/ToastContext'
+import { createOrder } from '../services/api'
 import { formatPrice, validateEmail } from '../utils/helpers'
 
 function SummaryContent({ items, subtotal, discount, tax, total }) {
@@ -58,7 +59,7 @@ function SummaryContent({ items, subtotal, discount, tax, total }) {
 export default function CheckoutPage() {
   const navigate = useNavigate()
   const { items, subtotal, clearCart } = useCart()
-  const [showSuccess, setShowSuccess] = useState(false)
+  const showToast = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [summaryOpen, setSummaryOpen] = useState(false)
 
@@ -115,21 +116,26 @@ export default function CheckoutPage() {
       return
     }
     setIsSubmitting(true)
-    await new Promise((res) => setTimeout(res, 800))
-    setIsSubmitting(false)
-    setShowSuccess(true)
-  }
-
-  const handleContinueShopping = () => {
-    setShowSuccess(false)
-    clearCart()
-    navigate('/products')
-  }
-
-  const handleGoHome = () => {
-    setShowSuccess(false)
-    clearCart()
-    navigate('/')
+    try {
+      const order = await createOrder({
+        items: items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          qty: item.qty,
+          image: item.image,
+        })),
+        shippingAddress: { ...form },
+      })
+      clearCart()
+      showToast('Order Placed Successfully')
+      navigate('/order-success', { state: { orderId: order._id } })
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to place order'
+      showToast(message, { type: 'error', duration: 4000 })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const summaryProps = useMemo(() => ({ items, subtotal, discount, tax, total }), [items, subtotal, discount, tax, total])
@@ -149,7 +155,7 @@ export default function CheckoutPage() {
 
         <h1 className="text-xl sm:text-2xl font-bold text-text-primary mb-4 sm:mb-6">Checkout</h1>
 
-        {items.length === 0 && !showSuccess ? (
+        {items.length === 0 ? (
           <div className="bg-white rounded-lg border border-border-col p-6 sm:p-12 text-center">
             <p className="text-lg text-text-secondary mb-2">Your cart is empty</p>
             <p className="text-sm text-text-muted mb-6">Add some items before checking out.</p>
@@ -292,13 +298,6 @@ export default function CheckoutPage() {
         )}
       </main>
       <Footer />
-
-      <SuccessModal
-        isOpen={showSuccess}
-        onClose={handleGoHome}
-        onContinueShopping={handleContinueShopping}
-        onGoHome={handleGoHome}
-      />
     </div>
   )
 }
