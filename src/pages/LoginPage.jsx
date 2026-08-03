@@ -66,7 +66,7 @@ export default function LoginPage() {
       notify('Login Successful')
       if (location.state?.from) {
         navigate(location.state.from)
-      } else if (data.role === 'seller') {
+      } else if (data.role === 'seller' || data.role === 'admin') {
         navigate('/seller')
       } else {
         navigate('/')

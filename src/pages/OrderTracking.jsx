@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Loader2, AlertCircle, RefreshCw, Check, X, MapPin, Package } from 'lucide-react'
+import { Loader2, AlertCircle, RefreshCw, Check, X, MapPin, Package, Ban } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { fetchOrderById } from '../services/api'
+import { fetchOrderById, cancelOrder } from '../services/api'
 import { formatPrice } from '../utils/helpers'
+import { useToast } from '../context/ToastContext'
 
 // Tracking order — later steps are "further along".
 const TRACK_STEPS = ['Pending', 'Confirmed', 'In Transit', 'Arrived', 'Delivered']
@@ -18,6 +19,9 @@ export default function OrderTracking() {
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [confirmCancel, setConfirmCancel] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+  const showToast = useToast()
 
   const load = async () => {
     setLoading(true)
@@ -34,6 +38,21 @@ export default function OrderTracking() {
   useEffect(() => {
     load()
   }, [id])
+
+  const handleCancel = async () => {
+    setCancelling(true)
+    try {
+      const updated = await cancelOrder(id)
+      setOrder(updated)
+      setConfirmCancel(false)
+      showToast('Order cancelled successfully')
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to cancel order', { type: 'error', duration: 4000 })
+      setConfirmCancel(false)
+    } finally {
+      setCancelling(false)
+    }
+  }
 
   const cancelled = order?.status === 'Cancelled'
   const currentIndex = TRACK_STEPS.indexOf(order?.status)
@@ -88,6 +107,42 @@ export default function OrderTracking() {
                   {order.status}
                 </span>
               </div>
+
+              {/* Pending orders can be cancelled before the seller confirms */}
+              {order.status === 'Pending' && (
+                <div className="flex flex-wrap items-center justify-between gap-3 mt-2 pt-4 border-t border-border-col">
+                  <p className="text-sm text-text-muted">
+                    This order hasn't been confirmed by the seller yet. You can cancel it.
+                  </p>
+                  {confirmCancel ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-danger font-medium">Cancel this order?</span>
+                      <button
+                        onClick={handleCancel}
+                        disabled={cancelling}
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-danger bg-red-50 hover:bg-red-100 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
+                      >
+                        {cancelling ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
+                        Yes, cancel
+                      </button>
+                      <button
+                        onClick={() => setConfirmCancel(false)}
+                        disabled={cancelling}
+                        className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:bg-bg-light rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
+                      >
+                        <X size={15} /> Keep order
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmCancel(true)}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-danger border border-danger/40 hover:bg-red-50 rounded-lg px-3 py-1.5 transition-colors"
+                    >
+                      <Ban size={15} /> Cancel order
+                    </button>
+                  )}
+                </div>
+              )}
 
               {/* Timeline */}
               {cancelled ? (

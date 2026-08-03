@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react'
 import { ImagePlus, X } from 'lucide-react'
 import FormInput from '../FormInput'
 import { img } from '../../utils/helpers'
+import { PRODUCT_CATEGORIES } from '../../data/categories'
 
 /**
  * ProductForm — shared seller form used by AddProduct and EditProduct.
@@ -29,9 +30,10 @@ export default function ProductForm({ initialValues = null, onSubmit, submitting
   })
   const [errors, setErrors] = useState({})
   const [files, setFiles] = useState([])
+  const [removedExisting, setRemovedExisting] = useState([])
   const fileInputRef = useRef(null)
 
-  // Existing images shown when editing — replaced if new files are chosen.
+  // Existing images shown when editing — removable, and kept unless removed.
   const existingImages = initialValues?.images?.length
     ? initialValues.images
     : initialValues?.image
@@ -48,12 +50,19 @@ export default function ProductForm({ initialValues = null, onSubmit, submitting
     const incoming = Array.from(e.target.files || [])
     if (incoming.length === 0) return
 
-    // Append new selections to existing ones (max 5), deduping by
+    // Enforce a total of 5 images — existing (kept) images count toward the limit.
+    if (keptExisting.length + files.length >= 5) {
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
+    // Append new selections to the remaining capacity, deduping by
     // name+size+lastModified so picking the same file twice doesn't duplicate.
     setFiles((prev) => {
       const existing = new Set(prev.map((f) => `${f.name}-${f.size}-${f.lastModified}`))
       const fresh = incoming.filter((f) => !existing.has(`${f.name}-${f.size}-${f.lastModified}`))
-      return [...prev, ...fresh].slice(0, 5)
+      const room = 5 - (keptExisting.length + prev.length)
+      return [...prev, ...fresh].slice(0, Math.max(room, 0))
     })
 
     // Reset the input value so choosing the same file again still fires onChange.
@@ -64,6 +73,12 @@ export default function ProductForm({ initialValues = null, onSubmit, submitting
     setFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
+  const removeExisting = (src) => {
+    setRemovedExisting((prev) => (prev.includes(src) ? prev : [...prev, src]))
+  }
+
+  const keptExisting = existingImages.filter((src) => !removedExisting.includes(src))
+
   const validate = () => {
     const newErrors = {}
     if (!form.name.trim()) newErrors.name = 'Product name is required'
@@ -73,7 +88,9 @@ export default function ProductForm({ initialValues = null, onSubmit, submitting
     if (!form.category.trim()) newErrors.category = 'Category is required'
     if (form.stock === '' || Number(form.stock) < 0) newErrors.stock = 'Enter a valid stock quantity'
     if (!form.description.trim()) newErrors.description = 'Description is required'
-    if (!isEdit && files.length === 0) newErrors.images = 'Upload at least one product image'
+    if (keptExisting.length === 0 && files.length === 0) {
+      newErrors.images = 'Upload or keep at least one product image'
+    }
     return newErrors
   }
 
@@ -95,6 +112,9 @@ export default function ProductForm({ initialValues = null, onSubmit, submitting
       }
     })
     files.forEach((file) => formData.append('images', file))
+    if (keptExisting.length > 0) {
+      formData.append('existingImages', JSON.stringify(keptExisting))
+    }
 
     await onSubmit(formData)
   }
@@ -141,14 +161,30 @@ export default function ProductForm({ initialValues = null, onSubmit, submitting
           placeholder="0.00"
         />
 
-        <FormInput
-          label="Category"
-          name="category"
-          value={form.category}
-          onChange={handleChange}
-          error={errors.category}
-          placeholder="e.g. Electronics"
-        />
+        <div>
+          <label htmlFor="category" className="block text-sm font-medium text-text-primary mb-1.5">
+            Category
+          </label>
+          <select
+            id="category"
+            name="category"
+            value={form.category}
+            onChange={handleChange}
+            className={`w-full px-4 py-2.5 text-sm border rounded-lg outline-none transition-all duration-200 bg-white ${
+              errors.category
+                ? 'border-danger focus:ring-2 focus:ring-danger/30'
+                : 'border-border-col focus:border-primary focus:ring-2 focus:ring-primary/20'
+            }`}
+          >
+            <option value="" disabled>Select a category</option>
+            {PRODUCT_CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+          {errors.category && (
+            <p className="mt-1 text-xs text-danger">{errors.category}</p>
+          )}
+        </div>
         <FormInput
           label="Brand"
           name="brand"
@@ -202,7 +238,9 @@ export default function ProductForm({ initialValues = null, onSubmit, submitting
 
       {/* ── Image upload with previews ── */}
       <div className="mt-4">
-        <span className="block text-sm font-medium text-text-primary mb-1.5">Product images (max 5)</span>
+        <span className="block text-sm font-medium text-text-primary mb-1.5">
+          Product images ({keptExisting.length + files.length}/5)
+        </span>
         <div
           onClick={() => fileInputRef.current?.click()}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click() }}
@@ -223,12 +261,23 @@ export default function ProductForm({ initialValues = null, onSubmit, submitting
           />
         </div>
         {errors.images && <p className="mt-1 text-xs text-danger">{errors.images}</p>}
+        {keptExisting.length + files.length >= 5 && (
+          <p className="mt-1 text-xs text-text-muted">Maximum 5 images reached — remove one to add another.</p>
+        )}
 
-        {(files.length > 0 || existingImages.length > 0) && (
+        {(existingImages.length > 0 || files.length > 0) && (
           <div className="flex flex-wrap gap-3 mt-3">
-            {existingImages.map((src, i) => (
+            {existingImages.filter((src) => !removedExisting.includes(src)).map((src, i) => (
               <div key={`existing-${i}`} className="relative w-24 h-24">
-                <img src={previewSrc(src)} alt={`Existing ${i + 1}`} className="w-full h-full object-contain border border-border-col rounded-lg bg-bg-light p-1" />
+                <img src={previewSrc(src)} alt={`Existing ${i + 1}`} className="w-full h-full object-contain border border-border-col rounded-lg bg-white p-1" />
+                <button
+                  type="button"
+                  onClick={() => removeExisting(src)}
+                  className="absolute -top-2 -right-2 bg-danger text-white rounded-full p-0.5 shadow hover:bg-red-600 transition-colors"
+                  aria-label="Remove existing image"
+                >
+                  <X size={14} />
+                </button>
               </div>
             ))}
             {files.map((file, i) => (
@@ -246,8 +295,8 @@ export default function ProductForm({ initialValues = null, onSubmit, submitting
             ))}
           </div>
         )}
-        {isEdit && files.length > 0 && (
-          <p className="text-xs text-text-muted mt-2">New images will replace the existing ones on save.</p>
+        {isEdit && (
+          <p className="text-xs text-text-muted mt-2">Removed images are deleted from the store on save.</p>
         )}
       </div>
 

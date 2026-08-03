@@ -4,27 +4,16 @@ import productData from './products.json'
 // MOCK DATA — replace image filenames with your actual files in public/images/
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const navCategories = [
-  'All category', 'Hot offers', 'Gift boxes', 'Projects', 'Menu item', 'Help',
-]
-
 export const heroCategories = [
-  'Automobiles',
-  'Clothes and wear',
-  'Home interiors',
-  'Computer and tech',
-  'Tools, equipments',
-  'Sports and outdoor',
-  'Animal and pets',
-  'Machinery tools',
+  'Electronics',
+  'Clothing & Fashion',
+  'Shoes & Footwear',
+  'Home & Furniture',
+  'Computers & Accessories',
+  'Sports & Outdoors',
+  'Beauty & Personal Care',
+  'Toys & Games',
   'More category',
-]
-
-export const sidebarCategories = [
-  { name: 'Mobile accessory', count: 12911 },
-  { name: 'Electronics', count: 8453 },
-  { name: 'Smartphones', count: 4219 },
-  { name: 'Modern tech', count: 3100 },
 ]
 
 export const brands = ['Samsung', 'Apple', 'Huawei', 'Pocco', 'Lenovo']

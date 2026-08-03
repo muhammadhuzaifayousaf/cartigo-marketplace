@@ -4,6 +4,7 @@ import { Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import ProductForm from '../../components/seller/ProductForm'
 import { fetchSellerProducts, updateSellerProduct } from '../../services/api'
 import { useToast } from '../../context/ToastContext'
+import { useAuth } from '../../context/AuthContext'
 
 /**
  * EditProduct — prefilled form for updating one of the seller's products.
@@ -12,6 +13,7 @@ export default function EditProduct() {
   const { id } = useParams()
   const navigate = useNavigate()
   const showToast = useToast()
+  const { isAdmin } = useAuth()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -43,7 +45,11 @@ export default function EditProduct() {
     setSubmitting(true)
     try {
       await updateSellerProduct(id, formData)
-      showToast('Product updated successfully')
+      showToast(
+        isAdmin
+          ? 'Product updated successfully'
+          : 'Product updated — it will go live again after admin approval'
+      )
       navigate('/seller/products')
     } catch (err) {
       const message = err.response?.data?.message || 'Failed to update product'

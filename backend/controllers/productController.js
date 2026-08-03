@@ -5,13 +5,13 @@
 const { Product } = require('../models/Product');
 
 /**
- * @desc    Get all products
+ * @desc    Get all approved (verified) products
  * @route   GET /api/products
  * @access  Public
  */
 const getProducts = async (req, res) => {
   try {
-    const products = await Product.find({}).sort({ createdAt: -1 });
+    const products = await Product.find({ verified: true }).sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
       count: products.length,
@@ -27,15 +27,16 @@ const getProducts = async (req, res) => {
 };
 
 /**
- * @desc    Get single product by ID
+ * @desc    Get single approved product by ID
  * @route   GET /api/products/:id
- * @access  Public
+ * @access  Public (unverified products are hidden until approved)
  */
 const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
-    if (!product) {
+    // Unapproved products are not visible on the public storefront.
+    if (!product || !product.verified) {
       return res.status(404).json({
         success: false,
         message: 'Product not found',

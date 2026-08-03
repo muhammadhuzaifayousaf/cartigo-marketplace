@@ -10,6 +10,7 @@ const {
   getMyOrders,
   getOrderById,
   updateOrderStatus,
+  cancelOrder,
 } = require('../controllers/orderController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -22,6 +23,9 @@ router.get('/my', protect, getMyOrders);
 // PUT /api/orders/:id/status — Update order tracking status
 // (seller owning an item on the order, or admin)
 router.put('/:id/status', protect, updateOrderStatus);
+
+// PUT /api/orders/:id/cancel — Customer cancels their pending order
+router.put('/:id/cancel', protect, cancelOrder);
 
 // GET /api/orders/:id — Single order (owner or admin)
 router.get('/:id', protect, getOrderById);

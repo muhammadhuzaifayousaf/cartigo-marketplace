@@ -112,6 +112,17 @@ export const updateOrderStatus = async (id, status) => {
   return response.data.data;
 };
 
+/**
+ * Cancel the authenticated customer's own order.
+ * Only allowed while the order is still "Pending" (before the seller confirms it).
+ * @param {string} id - Order ID
+ * @returns {Promise<Object>} Updated order document
+ */
+export const cancelOrder = async (id) => {
+  const response = await api.put(`/orders/${id}/cancel`);
+  return response.data.data;
+};
+
 /* ── Seller endpoints ─────────────────────────────────────────────────────── */
 
 /**
@@ -164,6 +175,29 @@ export const deleteSellerProduct = async (id) => {
  */
 export const fetchSellerOrders = async () => {
   const response = await api.get('/seller/orders');
+  return response.data.data;
+};
+
+/* ── Admin endpoints ──────────────────────────────────────────────────────── */
+
+/**
+ * Fetch all products (for the admin approvals queue).
+ * @param {string} [status] - "pending" | "all" (optional)
+ * @returns {Promise<Array>} Array of product documents
+ */
+export const fetchAdminProducts = async (status = 'all') => {
+  const response = await api.get(`/admin/products?status=${status}`);
+  return response.data.data;
+};
+
+/**
+ * Approve or reject a product's storefront visibility.
+ * @param {string} id - Product ID
+ * @param {boolean} verified - true to approve, false to reject
+ * @returns {Promise<Object>} Updated product document
+ */
+export const updateProductVerification = async (id, verified) => {
+  const response = await api.put(`/admin/products/${id}/verify`, { verified });
   return response.data.data;
 };
 

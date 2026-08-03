@@ -15,6 +15,8 @@ const productRoutes = require('./routes/productRoutes');
 const authRoutes = require('./routes/authRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const sellerRoutes = require('./routes/sellerRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const { PRODUCT_CATEGORIES } = require('./config/categories');
 
 // Initialize Express app
 const app = express();
@@ -28,6 +30,12 @@ app.use('/api/products', productRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/seller', sellerRoutes);
+app.use('/api/admin', adminRoutes);
+
+// Canonical category list used by the storefront and seller product form
+app.get('/api/categories', (req, res) => {
+  res.status(200).json({ success: true, data: PRODUCT_CATEGORIES });
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

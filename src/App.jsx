@@ -24,6 +24,7 @@ import AddProduct from "./pages/seller/AddProduct";
 import EditProduct from "./pages/seller/EditProduct";
 import SellerOrders from "./pages/seller/SellerOrders";
 import SellerProfile from "./pages/seller/SellerProfile";
+import AdminApprovals from "./pages/seller/AdminApprovals";
 
 function ProtectedRoute({ children }) {
   const { isLoggedIn } = useAuth();
@@ -121,6 +122,7 @@ export default function App() {
                 <Route path="products/add" element={<AddProduct />} />
                 <Route path="products/:id/edit" element={<EditProduct />} />
                 <Route path="orders" element={<SellerOrders />} />
+                <Route path="approvals" element={<AdminApprovals />} />
                 <Route path="profile" element={<SellerProfile />} />
               </Route>
 

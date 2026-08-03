@@ -78,7 +78,7 @@ const getMyOrders = async (req, res) => {
 };
 
 /**
- * @desc    Get a single order (owner or admin only)
+ * @desc    Get a single order (owner, admin, or seller selling an item on it)
  * @route   GET /api/orders/:id
  * @access  Private
  */
@@ -90,7 +90,12 @@ const getOrderById = async (req, res) => {
   }
 
   const isOwner = order.user.toString() === req.user._id.toString();
-  if (!isOwner && req.user.role !== 'admin') {
+  const isAdmin = req.user.role === 'admin';
+  const sellsItem = order.items.some(
+    (item) => item.seller && item.seller.toString() === req.user._id.toString()
+  );
+
+  if (!isOwner && !isAdmin && !sellsItem) {
     return res.status(403).json({ success: false, message: 'Access denied' });
   }
 
@@ -150,10 +155,45 @@ const updateOrderStatus = async (req, res) => {
   });
 };
 
+/**
+ * @desc    Customer cancels their own order before the seller confirms it
+ * @route   PUT /api/orders/:id/cancel
+ * @access  Private (order owner)
+ */
+const cancelOrder = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    return res.status(404).json({ success: false, message: 'Order not found' });
+  }
+
+  const isOwner = order.user.toString() === req.user._id.toString();
+  if (!isOwner && req.user.role !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Access denied' });
+  }
+
+  if (order.status !== 'Pending') {
+    return res.status(400).json({
+      success: false,
+      message: 'This order can no longer be cancelled — it has already been confirmed by the seller',
+    });
+  }
+
+  order.status = 'Cancelled';
+  await order.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Order cancelled successfully',
+    data: order,
+  });
+};
+
 module.exports = {
   createOrder,
   getMyOrders,
   getOrderById,
   getSellerOrders,
   updateOrderStatus,
+  cancelOrder,
 };

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import { sidebarCategories, brands, features, conditions, ratingFilters } from '../data/products'
+import { PRODUCT_CATEGORIES } from '../data/categories'
+import { brands, features, conditions, ratingFilters } from '../data/products'
 import StarRating from './StarRating'
 
 // Collapsible section wrapper
@@ -49,13 +50,13 @@ export default function FilterSidebar({ filters, onChange }) {
       {/* Category */}
       <Section title="Category">
         <ul className="space-y-1">
-          {sidebarCategories.map((cat) => (
-            <li key={cat.name}>
+          {PRODUCT_CATEGORIES.map((name) => (
+            <li key={name}>
               <button
-                onClick={() => toggle('categories', cat.name)}
+                onClick={() => toggle('categories', name)}
                 className="text-sm text-text-secondary hover:text-primary w-full text-left py-0.5"
               >
-                {cat.name}
+                {name}
               </button>
             </li>
           ))}

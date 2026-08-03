@@ -5,6 +5,15 @@ import { fetchSellerProducts, deleteSellerProduct } from '../../services/api'
 import { formatPrice } from '../../utils/helpers'
 import { useToast } from '../../context/ToastContext'
 
+// Approval status badge — rejected is distinct from pending.
+const STATUS_META = {
+  approved: { label: 'Approved', classes: 'bg-primary-light text-primary' },
+  pending: { label: 'Pending', classes: 'bg-amber-50 text-amber-600' },
+  rejected: { label: 'Rejected', classes: 'bg-red-50 text-danger' },
+}
+
+const productStatus = (p) => p.status || (p.verified ? 'approved' : 'pending')
+
 /**
  * SellerProducts — lists the seller's own products with edit/delete actions.
  */
@@ -132,8 +141,8 @@ export default function SellerProducts() {
                     </td>
                     <td className="px-4 py-3 text-text-secondary">{p.category}</td>
                     <td className="px-4 py-3">
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-light text-primary">
-                        {p.verified ? 'Verified' : 'Pending'}
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${(STATUS_META[productStatus(p)] || STATUS_META.pending).classes}`}>
+                        {(STATUS_META[productStatus(p)] || STATUS_META.pending).label}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -172,6 +181,11 @@ export default function SellerProducts() {
                   <p className="text-sm font-medium text-text-primary line-clamp-2">{p.name}</p>
                   <p className="text-sm font-semibold text-text-primary mt-1">{formatPrice(p.price)}</p>
                   <p className="text-xs text-text-muted">{p.category} · Stock: {p.stock}</p>
+                  <div className="mt-1.5">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${(STATUS_META[productStatus(p)] || STATUS_META.pending).classes}`}>
+                      {(STATUS_META[productStatus(p)] || STATUS_META.pending).label}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-3 mt-2">
                     <Link to={`/seller/products/${p._id}/edit`} className="inline-flex items-center gap-1 text-sm text-primary">
                       <Pencil size={14} /> Edit

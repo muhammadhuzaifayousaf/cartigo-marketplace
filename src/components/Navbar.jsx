@@ -4,8 +4,9 @@ import {
   ShoppingCart, User, MessageSquare, Package,
   Search, ChevronDown, Menu, X, ShoppingBag,
   Home, List, Heart, FileText, Globe, LogOut, Store, LayoutDashboard,
+  BadgeCheck,
 } from 'lucide-react'
-import { navCategories } from '../data/products'
+import { navCategories, PRODUCT_CATEGORIES } from '../data/categories'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { img } from '../utils/helpers'
@@ -68,7 +69,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { totalItems } = useCart()
   const navigate = useNavigate()
-  const { isLoggedIn, isSeller, user, logout } = useAuth()
+  const { isLoggedIn, isSeller, isAdmin, user, logout } = useAuth()
 
   const handleLogout = () => {
     logout()
@@ -106,6 +107,7 @@ export default function Navbar() {
               <IconBtn icon={LayoutDashboard} label="Dashboard" to="/seller" />
               <IconBtn icon={Store} label="Products" to="/seller/products" />
               <IconBtn icon={Package} label="Orders" to="/seller/orders" />
+              {isAdmin && <IconBtn icon={BadgeCheck} label="Approvals" to="/seller/approvals" />}
             </>
           ) : (
             <>
@@ -183,23 +185,22 @@ export default function Navbar() {
 
       {/* ── Secondary nav bar (desktop) ── */}
       <div className="hidden md:flex border-t border-border-col">
-        <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-between py-2">
-          <div className="flex items-center gap-6">
-            <Link to="/products" className="flex items-center gap-1 text-sm font-medium text-text-primary hover:text-primary">
+        <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-between gap-6 py-2">
+          <div className="flex items-center gap-6 overflow-x-auto scrollbar-hide min-w-0">
+            <Link to="/products" className="flex items-center gap-1 text-sm font-medium text-text-primary hover:text-primary flex-shrink-0">
               <Menu size={16} /> All category
             </Link>
-            {navCategories.slice(1).map((cat) => (
+            {navCategories.map((cat) => (
               <Link
                 key={cat}
-                to="/products"
-                className="text-sm text-text-secondary hover:text-primary transition-colors flex items-center gap-1"
+                to={`/products?category=${encodeURIComponent(cat)}`}
+                className="text-sm text-text-secondary hover:text-primary transition-colors flex items-center gap-1 whitespace-nowrap flex-shrink-0"
               >
                 {cat}
-                {cat === 'Help' && <ChevronDown size={12} />}
               </Link>
             ))}
           </div>
-          <div className="flex items-center gap-4 text-sm text-text-secondary">
+          <div className="hidden lg:flex items-center gap-4 text-sm text-text-secondary flex-shrink-0">
             <button className="flex items-center gap-1 hover:text-primary">
               English, USD
               <ChevronDown size={12} />
@@ -219,10 +220,10 @@ export default function Navbar() {
       {/* ── Mobile category chips ── */}
       <div className="md:hidden border-t border-border-col">
         <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 py-2">
-          {['All category', 'Gadgets', 'Clothes', 'Accessories', 'Electronics', 'Sports'].map((cat) => (
+          {['All category', ...PRODUCT_CATEGORIES].map((cat) => (
             <Link
               key={cat}
-              to="/products"
+              to={cat === 'All category' ? '/products' : `/products?category=${encodeURIComponent(cat)}`}
               className="flex-shrink-0 text-sm text-primary font-medium whitespace-nowrap"
             >
               {cat}
@@ -280,6 +281,11 @@ export default function Navbar() {
                   <Link to="/seller/orders" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
                     <Package size={18} /> Orders
                   </Link>
+                  {isAdmin && (
+                    <Link to="/seller/approvals" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
+                      <BadgeCheck size={18} /> Product Approvals
+                    </Link>
+                  )}
                 </>
               ) : (
                 <>

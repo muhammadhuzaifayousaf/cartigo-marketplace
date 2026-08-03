@@ -20,8 +20,10 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || '')
 
   const isLoggedIn = Boolean(token)
-  // Convenience flag used to branch navigation between customer and seller UIs.
-  const isSeller = user?.role === 'seller'
+  // Convenience flags used to branch navigation between customer and seller UIs.
+  const isAdmin = user?.role === 'admin'
+  // Admins have full seller capabilities (dashboard, products, orders, approvals).
+  const isSeller = user?.role === 'seller' || user?.role === 'admin'
 
   const login = useCallback(async (email, password) => {
     const data = await apiLogin({ email, password })
@@ -46,7 +48,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoggedIn, isSeller, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoggedIn, isAdmin, isSeller, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   )

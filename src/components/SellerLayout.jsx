@@ -1,12 +1,12 @@
 import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Package, PlusCircle, ClipboardList, User,
-  LogOut, ArrowLeft, Store,
+  LogOut, ArrowLeft, Store, BadgeCheck,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { img } from '../utils/helpers'
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { to: '/seller', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/seller/products', label: 'Products', icon: Package, end: false },
   { to: '/seller/products/add', label: 'Add Product', icon: PlusCircle, end: false },
@@ -14,10 +14,10 @@ const NAV_ITEMS = [
   { to: '/seller/profile', label: 'Profile', icon: User, end: false },
 ]
 
-function SidebarContent({ onNavigate }) {
+function SidebarContent({ onNavigate, navItems }) {
   return (
     <nav className="space-y-1 p-3">
-      {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
+      {navItems.map(({ to, label, icon: Icon, end }) => (
         <NavLink
           key={to}
           to={to}
@@ -45,7 +45,7 @@ function SidebarContent({ onNavigate }) {
  * and the nested page via <Outlet />.
  */
 export default function SellerLayout() {
-  const { user, logout } = useAuth()
+  const { user, isAdmin, logout } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -54,6 +54,14 @@ export default function SellerLayout() {
   }
 
   const userName = user?.name || 'Seller'
+
+  const navItems = isAdmin
+    ? [
+        ...BASE_NAV_ITEMS.slice(0, 4),
+        { to: '/seller/approvals', label: 'Approvals', icon: BadgeCheck, end: false },
+        BASE_NAV_ITEMS[4],
+      ]
+    : BASE_NAV_ITEMS
 
   return (
     <div className="min-h-screen bg-bg-light">
@@ -95,7 +103,7 @@ export default function SellerLayout() {
         {/* Mobile horizontal nav */}
         <div className="md:hidden border-t border-border-col overflow-x-auto scrollbar-hide">
           <div className="flex px-2 py-2 gap-1 min-w-max">
-            {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
+            {navItems.map(({ to, label, icon: Icon, end }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -116,7 +124,7 @@ export default function SellerLayout() {
       <div className="max-w-7xl mx-auto flex">
         {/* Desktop sidebar */}
         <aside className="hidden md:block w-56 flex-shrink-0 border-r border-border-col sticky top-16 h-[calc(100vh-4rem)]">
-          <SidebarContent />
+          <SidebarContent navItems={navItems} />
         </aside>
 
         {/* Page content */}

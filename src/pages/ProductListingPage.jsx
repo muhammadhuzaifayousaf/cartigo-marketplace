@@ -103,7 +103,7 @@ export default function ProductListingPage() {
   const [showMobileFilter, setShowMobileFilter] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
-  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All')
 
   // ── Backend data state ──
   const [products, setProducts]           = useState([])
@@ -145,6 +145,8 @@ export default function ProductListingPage() {
   useEffect(() => {
     const query = searchParams.get('q') || ''
     setSearchTerm(query)
+    const cat = searchParams.get('category')
+    if (cat) setSelectedCategory(cat)
   }, [searchParams])
 
   const filtered = useMemo(() => {

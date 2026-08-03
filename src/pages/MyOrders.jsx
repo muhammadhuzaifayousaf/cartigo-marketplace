@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, AlertCircle, RefreshCw, Package, ChevronRight } from 'lucide-react'
+import { Loader2, AlertCircle, RefreshCw, Package, ChevronRight, Ban, Check } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { fetchMyOrders } from '../services/api'
+import { fetchMyOrders, cancelOrder } from '../services/api'
 import { formatPrice } from '../utils/helpers'
+import { useToast } from '../context/ToastContext'
 
 /**
  * MyOrders — the customer's order history with a link to each tracking page.
@@ -13,6 +14,9 @@ export default function MyOrders() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [confirming, setConfirming] = useState(null)
+  const [cancelling, setCancelling] = useState(null)
+  const showToast = useToast()
 
   const load = async () => {
     setLoading(true)
@@ -29,6 +33,21 @@ export default function MyOrders() {
   useEffect(() => {
     load()
   }, [])
+
+  const handleCancel = async (order) => {
+    setCancelling(order._id)
+    try {
+      const updated = await cancelOrder(order._id)
+      setOrders((prev) => prev.map((o) => (o._id === updated._id ? updated : o)))
+      setConfirming(null)
+      showToast('Order cancelled successfully')
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to cancel order', { type: 'error', duration: 4000 })
+      setConfirming(null)
+    } finally {
+      setCancelling(null)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-bg-light">
@@ -87,17 +106,48 @@ export default function MyOrders() {
                         {new Date(order.createdAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <span
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                        order.status === 'Delivered'
-                          ? 'bg-green-100 text-success'
-                          : order.status === 'Cancelled'
-                            ? 'bg-red-100 text-danger'
-                            : 'bg-primary-light text-primary'
-                      }`}
-                    >
-                      {order.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                          order.status === 'Delivered'
+                            ? 'bg-green-100 text-success'
+                            : order.status === 'Cancelled'
+                              ? 'bg-red-100 text-danger'
+                              : 'bg-primary-light text-primary'
+                        }`}
+                      >
+                        {order.status}
+                      </span>
+                      {order.status === 'Pending' && (
+                        confirming === order._id ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-danger font-medium">Cancel?</span>
+                            <button
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCancel(order) }}
+                              disabled={cancelling === order._id}
+                              className="inline-flex items-center gap-1 text-xs font-semibold text-danger bg-red-50 hover:bg-red-100 rounded px-2 py-1 transition-colors disabled:opacity-50"
+                            >
+                              {cancelling === order._id ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                              Yes
+                            </button>
+                            <button
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirming(null) }}
+                              disabled={cancelling === order._id}
+                              className="inline-flex items-center gap-1 text-xs text-text-secondary hover:bg-bg-light rounded px-2 py-1 transition-colors"
+                            >
+                              Keep
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirming(order._id) }}
+                            className="inline-flex items-center gap-1 text-xs font-medium text-danger border border-danger/40 hover:bg-red-50 rounded px-2 py-1 transition-colors"
+                          >
+                            <Ban size={12} /> Cancel
+                          </button>
+                        )
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-3">
