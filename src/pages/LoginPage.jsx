@@ -62,9 +62,15 @@ export default function LoginPage() {
 
     setIsSubmitting(true)
     try {
-      await login(form.email, form.password)
+      const data = await login(form.email, form.password)
       notify('Login Successful')
-      navigate(location.state?.from || '/')
+      if (location.state?.from) {
+        navigate(location.state.from)
+      } else if (data.role === 'seller') {
+        navigate('/seller')
+      } else {
+        navigate('/')
+      }
     } catch (error) {
       const message = error.response?.data?.message || 'Invalid email or password'
       setErrors({ email: message })

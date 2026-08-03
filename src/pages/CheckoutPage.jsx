@@ -124,6 +124,10 @@ export default function CheckoutPage() {
           price: item.price,
           qty: item.qty,
           image: item.image,
+          // Seller ownership is denormalized so sellers can later manage
+          // orders that contain their products.
+          seller: item.seller && item.seller !== 'ShopHub' ? item.seller : null,
+          sellerName: item.sellerName || 'ShopHub',
         })),
         shippingAddress: { ...form },
       })

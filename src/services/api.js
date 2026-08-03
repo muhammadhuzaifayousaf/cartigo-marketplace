@@ -82,4 +82,89 @@ export const createOrder = async (orderData) => {
   return response.data.data;
 };
 
+/**
+ * Fetch the authenticated customer's order history (newest first).
+ * @returns {Promise<Array>} Array of order documents
+ */
+export const fetchMyOrders = async () => {
+  const response = await api.get('/orders/my');
+  return response.data.data;
+};
+
+/**
+ * Fetch a single order (owner or admin only).
+ * @param {string} id - Order ID
+ * @returns {Promise<Object>} Order document
+ */
+export const fetchOrderById = async (id) => {
+  const response = await api.get(`/orders/${id}`);
+  return response.data.data;
+};
+
+/**
+ * Update an order's tracking status (seller or admin).
+ * @param {string} id - Order ID
+ * @param {string} status - Pending | Confirmed | In Transit | Arrived | Delivered | Cancelled
+ * @returns {Promise<Object>} Updated order document
+ */
+export const updateOrderStatus = async (id, status) => {
+  const response = await api.put(`/orders/${id}/status`, { status });
+  return response.data.data;
+};
+
+/* ── Seller endpoints ─────────────────────────────────────────────────────── */
+
+/**
+ * Fetch the authenticated seller's own products.
+ * @returns {Promise<Array>} Array of product documents
+ */
+export const fetchSellerProducts = async () => {
+  const response = await api.get('/seller/products');
+  return response.data.data;
+};
+
+/**
+ * Create a seller product with Cloudinary image uploads.
+ * @param {FormData} formData - Fields + "images" file(s)
+ * @returns {Promise<Object>} Created product document
+ */
+export const createSellerProduct = async (formData) => {
+  const response = await api.post('/seller/products', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data.data;
+};
+
+/**
+ * Update a seller product (optional image replacement).
+ * @param {string} id - Product ID
+ * @param {FormData} formData - Fields + optional "images" file(s)
+ * @returns {Promise<Object>} Updated product document
+ */
+export const updateSellerProduct = async (id, formData) => {
+  const response = await api.put(`/seller/products/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data.data;
+};
+
+/**
+ * Delete a seller product (Cloudinary images removed server-side).
+ * @param {string} id - Product ID
+ * @returns {Promise<Object>} { success, message }
+ */
+export const deleteSellerProduct = async (id) => {
+  const response = await api.delete(`/seller/products/${id}`);
+  return response.data;
+};
+
+/**
+ * Fetch orders that contain at least one item sold by the seller.
+ * @returns {Promise<Array>} Array of order documents
+ */
+export const fetchSellerOrders = async () => {
+  const response = await api.get('/seller/orders');
+  return response.data.data;
+};
+
 export default api;

@@ -7,9 +7,10 @@ const mongoose = require('mongoose');
 /**
  * Order Schema
  * - user: reference to the User who placed the order
- * - items: snapshot of each purchased product (name, price, qty, image)
+ * - items: snapshot of each purchased product (name, price, qty, image, seller)
  * - shippingAddress: filled from the checkout form
  * - totals: computed server-side (subtotal, discount, tax, total)
+ * - status: lifecycle from Pending → Confirmed → In Transit → Arrived → Delivered
  */
 const orderSchema = new mongoose.Schema(
   {
@@ -29,6 +30,14 @@ const orderSchema = new mongoose.Schema(
         price: { type: Number, required: true },
         qty: { type: Number, required: true, min: 1 },
         image: { type: String, default: '' },
+        // Denormalized so sellers and customers can identify item ownership
+        // without extra lookups.
+        seller: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          default: null,
+        },
+        sellerName: { type: String, default: 'ShopHub' },
       },
     ],
     shippingAddress: {
@@ -49,7 +58,7 @@ const orderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+      enum: ['Pending', 'Confirmed', 'In Transit', 'Arrived', 'Delivered', 'Cancelled'],
       default: 'Pending',
     },
   },

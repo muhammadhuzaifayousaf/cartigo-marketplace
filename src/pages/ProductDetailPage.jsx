@@ -129,9 +129,13 @@ export default function ProductDetailPage() {
     )
   }
 
-  // Thumbnail images — use the same image for all (user replaces with actual thumbnails)
-  const thumbImages = Array(6).fill(product.image)
+  // Thumbnail images — use uploaded images when available (Cloudinary), else repeat the single image
+  const thumbImages = product.images && product.images.length > 0
+    ? product.images
+    : Array(6).fill(product.image)
   const tabs = ['description', 'reviews', 'shipping', 'about seller']
+  const sellerName = product.sellerName || 'ShopHub'
+  const sellerInitial = (sellerName.charAt(0) || 'S').toUpperCase()
 
   const priceTiers = [
     { range: '1-49 pcs',   price: product.price },
@@ -272,7 +276,8 @@ export default function ProductDetailPage() {
                     name: product.name,
                     price: product.price,
                     image: img(product.image),
-                    seller: product.seller || 'ShopHub',
+                    seller: product.seller || null,
+                    sellerName: product.sellerName || 'ShopHub',
                   }, qty)
                   showToast('Successfully added to cart!')
                   setQty(1)
@@ -289,11 +294,11 @@ export default function ProductDetailPage() {
           <div className="bg-white rounded border border-border-col p-5 h-fit">
             <div className="flex items-start gap-3 mb-3">
               <div className="w-10 h-10 bg-primary rounded flex items-center justify-center text-white font-bold text-lg">
-                G
+                {sellerInitial}
               </div>
               <div>
                 <p className="text-xs uppercase tracking-wide text-text-muted">Supplier</p>
-                <p className="font-semibold text-text-primary text-sm">Guanjoi Trading LLC</p>
+                <p className="font-semibold text-text-primary text-sm">{sellerName}</p>
               </div>
             </div>
             
@@ -399,7 +404,7 @@ export default function ProductDetailPage() {
               )}
               {activeTab === 'about seller' && (
                 <p className="text-sm text-text-secondary">
-                  Guanjoi Trading LLC — verified seller based in Germany, Berlin. Worldwide shipping with 2-year warranty.
+                  {sellerName} — verified seller. Worldwide shipping with 2-year warranty.
                 </p>
               )}
             </div>

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   ShoppingCart, User, MessageSquare, Package,
   Search, ChevronDown, Menu, X, ShoppingBag,
-  Home, List, Heart, FileText, Globe, LogOut,
+  Home, List, Heart, FileText, Globe, LogOut, Store, LayoutDashboard,
 } from 'lucide-react'
 import { navCategories } from '../data/products'
 import { useCart } from '../context/CartContext'
@@ -68,7 +68,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { totalItems } = useCart()
   const navigate = useNavigate()
-  const { isLoggedIn, user, logout } = useAuth()
+  const { isLoggedIn, isSeller, user, logout } = useAuth()
 
   const handleLogout = () => {
     logout()
@@ -100,14 +100,25 @@ export default function Navbar() {
         {/* Desktop nav: icons + auth buttons */}
         <nav className="hidden md:flex items-center gap-5">
           <IconBtn icon={MessageSquare} label="Message" to="/about" />
-          <IconBtn icon={Package} label="Orders" to="/cart" />
-          <IconBtn icon={ShoppingCart} label="My cart" to="/cart" badge={totalItems} />
+
+          {isSeller ? (
+            <>
+              <IconBtn icon={LayoutDashboard} label="Dashboard" to="/seller" />
+              <IconBtn icon={Store} label="Products" to="/seller/products" />
+              <IconBtn icon={Package} label="Orders" to="/seller/orders" />
+            </>
+          ) : (
+            <>
+              <IconBtn icon={Package} label="Orders" to={isLoggedIn ? '/orders' : '/login'} />
+              <IconBtn icon={ShoppingCart} label="My cart" to="/cart" badge={totalItems} />
+            </>
+          )}
 
           <div className="w-px h-8 bg-border-col" />
 
           {isLoggedIn ? (
             <div className="flex items-center gap-3">
-              <Link to="/about" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <Link to={isSeller ? '/seller/profile' : '/orders'} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">
                   {userInitial}
                 </div>
@@ -143,16 +154,18 @@ export default function Navbar() {
 
         {/* Mobile: cart + user */}
         <div className="flex md:hidden items-center gap-3 ml-auto">
-          <Link to="/cart" className="relative text-text-secondary">
-            <ShoppingCart size={22} />
-            {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 bg-danger text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                {totalItems}
-              </span>
-            )}
-          </Link>
+          {!isSeller && (
+            <Link to="/cart" className="relative text-text-secondary">
+              <ShoppingCart size={22} />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-danger text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
+          )}
           {isLoggedIn ? (
-            <Link to="/about" className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">
+            <Link to={isSeller ? '/seller/profile' : '/orders'} className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">
               {userInitial}
             </Link>
           ) : (
@@ -255,12 +268,29 @@ export default function Navbar() {
               <Link to="/products" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
                 <List size={18} /> Categories
               </Link>
-              <Link to="/cart" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
-                <Heart size={18} /> Favorites
-              </Link>
-              <Link to="/cart" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
-                <Package size={18} /> My orders
-              </Link>
+
+              {isSeller ? (
+                <>
+                  <Link to="/seller" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
+                    <LayoutDashboard size={18} /> Dashboard
+                  </Link>
+                  <Link to="/seller/products" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
+                    <Store size={18} /> My Products
+                  </Link>
+                  <Link to="/seller/orders" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
+                    <Package size={18} /> Orders
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/cart" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
+                    <Heart size={18} /> Favorites
+                  </Link>
+                  <Link to="/orders" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
+                    <Package size={18} /> My orders
+                  </Link>
+                </>
+              )}
 
               <div className="flex items-center gap-2 rounded-lg px-3 py-3 text-sm text-text-secondary">
                 <Globe size={16} />

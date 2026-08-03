@@ -8,6 +8,7 @@ const bcrypt = require('bcryptjs');
 /**
  * User Schema
  * - name, email (unique), password (hashed with bcryptjs)
+ * - role: 'user' (customer) | 'seller' | 'admin' (default 'user')
  */
 const userSchema = new mongoose.Schema(
   {
@@ -27,6 +28,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Password is required'],
       minlength: [8, 'Password must be at least 8 characters'],
+    },
+    role: {
+      type: String,
+      enum: ['user', 'seller', 'admin'],
+      default: 'user',
     },
   },
   {

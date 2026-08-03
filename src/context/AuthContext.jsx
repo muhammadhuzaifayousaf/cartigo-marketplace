@@ -20,10 +20,12 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || '')
 
   const isLoggedIn = Boolean(token)
+  // Convenience flag used to branch navigation between customer and seller UIs.
+  const isSeller = user?.role === 'seller'
 
   const login = useCallback(async (email, password) => {
     const data = await apiLogin({ email, password })
-    const authUser = { _id: data._id, name: data.name, email: data.email }
+    const authUser = { _id: data._id, name: data.name, email: data.email, role: data.role }
     localStorage.setItem(TOKEN_KEY, data.token)
     localStorage.setItem(USER_KEY, JSON.stringify(authUser))
     setToken(data.token)
@@ -31,8 +33,8 @@ export function AuthProvider({ children }) {
     return data
   }, [])
 
-  const register = useCallback(async (name, email, password) => {
-    const data = await apiRegister({ name, email, password })
+  const register = useCallback(async (name, email, password, role = 'user') => {
+    const data = await apiRegister({ name, email, password, role })
     return data
   }, [])
 
@@ -44,7 +46,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoggedIn, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoggedIn, isSeller, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   )

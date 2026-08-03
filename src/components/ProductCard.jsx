@@ -1,4 +1,4 @@
-import { Heart } from 'lucide-react'
+import { Heart, BadgeCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import StarRating from './StarRating'
 import { img, formatPrice } from '../utils/helpers'
@@ -49,6 +49,12 @@ function GridCard({ product, onWishlist, wishlisted, onAddToCart }) {
             <StarRating rating={product.rating} />
             <span className="text-xs text-text-muted">{product.rating}</span>
           </div>
+
+          {/* Seller */}
+          <p className="text-xs text-text-muted mt-1 flex items-center gap-1 truncate">
+            by {product.sellerName || 'ShopHub'}
+            <BadgeCheck size={13} className="text-primary flex-shrink-0" />
+          </p>
 
           {/* Name */}
           <p className="text-xs text-text-secondary mt-1 line-clamp-2 leading-snug">
@@ -159,7 +165,8 @@ export default function ProductCard({ product, mode = 'grid', wishlistIds = [], 
       name: p.name,
       price: p.price,
       image: img(p.image),
-      seller: p.seller || 'ShopHub',
+      seller: p.seller || null,
+      sellerName: p.sellerName || 'ShopHub',
     })
     showToast('Successfully added to cart!')
   }

@@ -2,16 +2,19 @@
  * Express Server — Ecommerce Backend
  * Runs on port 5000, connects to MongoDB Atlas
  */
+
+// Load environment variables from .env FIRST so that modules required
+// below (Cloudinary config, auth middleware, etc.) see them.
+const dotenv = require('dotenv');
+dotenv.config();
+
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const productRoutes = require('./routes/productRoutes');
 const authRoutes = require('./routes/authRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-
-// Load environment variables from .env
-dotenv.config();
+const sellerRoutes = require('./routes/sellerRoutes');
 
 // Initialize Express app
 const app = express();
@@ -24,6 +27,7 @@ app.use(cors());               // Enable Cross-Origin Resource Sharing
 app.use('/api/products', productRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/seller', sellerRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -32,10 +36,11 @@ app.get('/api/health', (req, res) => {
 
 // ── Error Handler ──
 app.use((err, req, res, next) => {
-  console.error(`Unhandled error: ${err.message}`);
+  console.error(`Unhandled error: ${err.message || err.error?.message || 'unknown'}`);
+  console.error(err.stack || err);
   res.status(err.statusCode || 500).json({
     success: false,
-    message: err.message || 'Server error',
+    message: err.message || err.error?.message || 'Server error',
   });
 });
 

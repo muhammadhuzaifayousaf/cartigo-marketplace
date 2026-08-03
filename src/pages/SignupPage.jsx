@@ -1,11 +1,16 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { UserPlus } from 'lucide-react'
+import { UserPlus, ShoppingBag, Store } from 'lucide-react'
 import AuthLayout from '../components/AuthLayout'
 import FormInput from '../components/FormInput'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { validateEmail } from '../utils/helpers'
+
+const ACCOUNT_TYPES = [
+  { value: 'user', label: 'Customer', description: 'Browse, buy and track orders', icon: ShoppingBag },
+  { value: 'seller', label: 'Seller', description: 'Sell products and manage orders', icon: Store },
+]
 
 export default function SignupPage() {
   const navigate = useNavigate()
@@ -17,6 +22,7 @@ export default function SignupPage() {
     password: '',
     confirmPassword: '',
   })
+  const [role, setRole] = useState('user')
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -61,7 +67,7 @@ export default function SignupPage() {
 
     setIsSubmitting(true)
     try {
-      await register(form.name, form.email, form.password)
+      await register(form.name, form.email, form.password, role)
       showToast('Registration Successful')
       navigate('/login')
     } catch (error) {
@@ -75,6 +81,32 @@ export default function SignupPage() {
   return (
     <AuthLayout title="Create an account" subtitle="Enter your details below.">
       <form onSubmit={handleSubmit} noValidate>
+        {/* Account type selector */}
+        <div className="mb-5">
+          <span className="block text-sm font-medium text-text-primary mb-1.5">Account type</span>
+          <div className="grid grid-cols-2 gap-2">
+            {ACCOUNT_TYPES.map(({ value, label, description, icon: Icon }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setRole(value)}
+                aria-pressed={role === value}
+                className={`border rounded-lg p-3 text-left transition-all duration-200 ${
+                  role === value
+                    ? 'border-primary bg-primary-light/50 ring-2 ring-primary/20'
+                    : 'border-border-col hover:border-primary/50'
+                }`}
+              >
+                <Icon size={18} className={role === value ? 'text-primary' : 'text-text-muted'} />
+                <p className={`text-sm font-semibold mt-1 ${role === value ? 'text-primary' : 'text-text-primary'}`}>
+                  {label}
+                </p>
+                <p className="text-xs text-text-muted leading-snug mt-0.5">{description}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <FormInput
           label="Full Name"
           type="text"

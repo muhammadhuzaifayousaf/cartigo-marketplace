@@ -1,10 +1,13 @@
 /**
  * Returns the correct image path, accounting for GitHub Pages base URL.
  * Place all images inside: public/images/
+ * Absolute URLs (Cloudinary uploads, data URIs) pass through untouched.
  * Usage: img('tshirt.jpg') → '/ecommerce-frontend/images/tshirt.jpg'
  */
 export const img = (filename) =>
-  `${import.meta.env.BASE_URL}images/${filename}`
+  filename && (filename.startsWith('http') || filename.startsWith('data:'))
+    ? filename
+    : `${import.meta.env.BASE_URL}images/${filename}`
 
 /**
  * Format a price as USD currency string

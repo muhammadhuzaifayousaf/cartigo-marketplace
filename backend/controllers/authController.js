@@ -1,6 +1,7 @@
 /**
  * Auth Controller
  * Handles user registration and login.
+ * Users register as either a customer ('user') or a 'seller'.
  */
 const User = require('../models/User');
 const validator = require('validator');
@@ -8,11 +9,13 @@ const generateToken = require('../utils/generateToken');
 
 /**
  * Build the user payload returned to the client (never the password).
+ * Includes the user's role so the frontend can branch the UI.
  */
 const buildAuthPayload = (user) => ({
   _id: user._id,
   name: user.name,
   email: user.email,
+  role: user.role,
   token: generateToken(user._id),
 });
 
@@ -22,7 +25,7 @@ const buildAuthPayload = (user) => ({
  * @access  Public
  */
 const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   if (!name || !email || !password) {
     return res.status(400).json({
@@ -45,6 +48,9 @@ const registerUser = async (req, res) => {
     });
   }
 
+  // Only 'user' and 'seller' can self-register. 'admin' is reserved.
+  const selectedRole = role === 'seller' ? 'seller' : 'user';
+
   const existing = await User.findOne({ email: email.toLowerCase() });
   if (existing) {
     return res.status(400).json({
@@ -53,7 +59,7 @@ const registerUser = async (req, res) => {
     });
   }
 
-  const user = await User.create({ name, email, password });
+  const user = await User.create({ name, email, password, role: selectedRole });
 
   res.status(201).json({
     success: true,

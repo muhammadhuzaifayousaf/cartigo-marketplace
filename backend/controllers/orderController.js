@@ -1,8 +1,10 @@
 /**
  * Order Controller
- * Handles order creation for authenticated users.
+ * Handles order creation, customer order history, seller order
+ * management, and order status/tracking updates.
  */
 const Order = require('../models/Order');
+const { Product } = require('../models/Product');
 
 /**
  * Compute order totals using the same logic as the frontend
@@ -48,6 +50,8 @@ const createOrder = async (req, res) => {
       price: item.price,
       qty: item.qty,
       image: item.image || '',
+      seller: item.seller || null,
+      sellerName: item.sellerName || 'ShopHub',
     })),
     shippingAddress,
     subtotal,
@@ -63,4 +67,93 @@ const createOrder = async (req, res) => {
   });
 };
 
-module.exports = { createOrder };
+/**
+ * @desc    Get the authenticated customer's orders (newest first)
+ * @route   GET /api/orders/my
+ * @access  Private
+ */
+const getMyOrders = async (req, res) => {
+  const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
+  res.status(200).json({ success: true, count: orders.length, data: orders });
+};
+
+/**
+ * @desc    Get a single order (owner or admin only)
+ * @route   GET /api/orders/:id
+ * @access  Private
+ */
+const getOrderById = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    return res.status(404).json({ success: false, message: 'Order not found' });
+  }
+
+  const isOwner = order.user.toString() === req.user._id.toString();
+  if (!isOwner && req.user.role !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Access denied' });
+  }
+
+  res.status(200).json({ success: true, data: order });
+};
+
+/**
+ * @desc    Get orders containing items sold by the authenticated seller
+ * @route   GET /api/seller/orders
+ * @access  Private (seller)
+ */
+const getSellerOrders = async (req, res) => {
+  const orders = await Order.find({ 'items.seller': req.user._id }).sort({ createdAt: -1 });
+  res.status(200).json({ success: true, count: orders.length, data: orders });
+};
+
+/**
+ * @desc    Update an order's status (tracking)
+ * @route   PUT /api/orders/:id/status
+ * @access  Private (seller owning an item on the order, or admin)
+ */
+const updateOrderStatus = async (req, res) => {
+  const { status } = req.body;
+  const allowed = ['Pending', 'Confirmed', 'In Transit', 'Arrived', 'Delivered', 'Cancelled'];
+
+  if (!status || !allowed.includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message: `Status must be one of: ${allowed.join(', ')}`,
+    });
+  }
+
+  const order = await Order.findById(req.params.id);
+  if (!order) {
+    return res.status(404).json({ success: false, message: 'Order not found' });
+  }
+
+  const isAdmin = req.user.role === 'admin';
+  const ownsItem = order.items.some(
+    (item) => item.seller && item.seller.toString() === req.user._id.toString()
+  );
+
+  if (!isAdmin && !ownsItem) {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied — you do not sell an item on this order',
+    });
+  }
+
+  order.status = status;
+  await order.save();
+
+  res.status(200).json({
+    success: true,
+    message: `Order marked as "${status}"`,
+    data: order,
+  });
+};
+
+module.exports = {
+  createOrder,
+  getMyOrders,
+  getOrderById,
+  getSellerOrders,
+  updateOrderStatus,
+};

@@ -2,6 +2,7 @@
  * Authentication Middleware
  * Reads the JWT from the Authorization header, verifies it,
  * and attaches the authenticated user to the request.
+ * Also provides role-based access control for seller routes.
  */
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
@@ -45,4 +46,27 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+/**
+ * Authorize roles — restrict a route to one or more roles.
+ * Must be used AFTER `protect`.
+ * Usage: router.get('/', protect, authorize('seller'), handler)
+ */
+const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized, no user',
+      });
+    }
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: `Access denied — requires role: ${roles.join(', ')}`,
+      });
+    }
+    next();
+  };
+};
+
+module.exports = { protect, authorize };
