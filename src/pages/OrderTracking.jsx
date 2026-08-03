@@ -4,7 +4,7 @@ import { Loader2, AlertCircle, RefreshCw, Check, X, MapPin, Package, Ban } from 
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { fetchOrderById, cancelOrder } from '../services/api'
-import { formatPrice } from '../utils/helpers'
+import { img, placeholderImg, formatPrice } from '../utils/helpers'
 import { useToast } from '../context/ToastContext'
 
 // Tracking order — later steps are "further along".
@@ -198,10 +198,10 @@ export default function OrderTracking() {
                 {order.items.map((item) => (
                   <li key={item._id || item.product} className="py-3 flex gap-3">
                     <img
-                      src={item.image || 'https://placehold.co/56x56/f7f7f7/999?text=P'}
+                      src={item.image ? img(item.image) : placeholderImg}
                       alt={item.name}
                       className="w-14 h-14 object-contain border border-border-col rounded bg-bg-light p-1 flex-shrink-0"
-                      onError={(e) => { e.target.src = 'https://placehold.co/56x56/f7f7f7/999?text=P' }}
+                      onError={(e) => { e.target.src = placeholderImg }}
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-text-primary">{item.name}</p>

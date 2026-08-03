@@ -10,6 +10,14 @@ export const img = (filename) =>
     : `${import.meta.env.BASE_URL}images/${filename}`
 
 /**
+ * Self-contained SVG placeholder (gray box with a "P").
+ * Rendered from a data URI so it works offline and on every device —
+ * no external host (e.g. placehold.co) that can be blocked on mobile.
+ */
+const svgPlaceholder = `<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96'><rect width='100%' height='100%' fill='#f0f0f0'/><text x='50%' y='54%' font-size='40' fill='#b0b0b0' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif'>P</text></svg>`
+export const placeholderImg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgPlaceholder)}`
+
+/**
  * Format a price as USD currency string
  */
 export const formatPrice = (price) =>

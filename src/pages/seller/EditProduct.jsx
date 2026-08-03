@@ -84,7 +84,7 @@ export default function EditProduct() {
     <div className="space-y-5">
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Edit Product</h1>
-        <p className="text-sm text-text-muted mt-1">Update the details below. Choosing new images replaces the existing ones.</p>
+        <p className="text-sm text-text-muted mt-1">Update the details below.</p>
       </div>
       <div className="bg-white rounded-lg border border-border-col p-4 sm:p-6">
         <ProductForm initialValues={product} onSubmit={handleSubmit} submitting={submitting} submitLabel="Save Changes" />

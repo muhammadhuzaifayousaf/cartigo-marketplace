@@ -4,7 +4,7 @@ import { Loader2, AlertCircle, RefreshCw, Package, ChevronRight, Ban, Check } fr
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { fetchMyOrders, cancelOrder } from '../services/api'
-import { formatPrice } from '../utils/helpers'
+import { img, placeholderImg, formatPrice } from '../utils/helpers'
 import { useToast } from '../context/ToastContext'
 
 /**
@@ -155,10 +155,10 @@ export default function MyOrders() {
                       {order.items.slice(0, 4).map((item) => (
                         <img
                           key={item._id || item.product}
-                          src={item.image || 'https://placehold.co/40x40/f7f7f7/999?text=P'}
+                          src={item.image ? img(item.image) : placeholderImg}
                           alt={item.name}
                           className="w-10 h-10 rounded-full border-2 border-white object-contain bg-bg-light"
-                          onError={(e) => { e.target.src = 'https://placehold.co/40x40/f7f7f7/999?text=P' }}
+                          onError={(e) => { e.target.src = placeholderImg }}
                         />
                       ))}
                     </div>

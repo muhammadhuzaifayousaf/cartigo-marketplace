@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Loader2, AlertCircle, RefreshCw, X as CloseIcon, MapPin, Package } from 'lucide-react'
 import { fetchSellerOrders, updateOrderStatus } from '../../services/api'
-import { img, formatPrice } from '../../utils/helpers'
+import { img, placeholderImg, formatPrice } from '../../utils/helpers'
 import { useToast } from '../../context/ToastContext'
 
 const STATUSES = ['Pending', 'Confirmed', 'In Transit', 'Arrived', 'Delivered', 'Cancelled']
@@ -117,10 +117,10 @@ function OrderDetailModal({ order, onClose, onStatusChange, updating }) {
               {order.items.map((item) => (
                 <li key={item._id || item.product} className="py-3 px-4 flex gap-3">
                   <img
-                    src={item.image ? img(item.image) : 'https://placehold.co/48x48/f7f7f7/999?text=P'}
+                    src={item.image ? img(item.image) : placeholderImg}
                     alt={item.name}
                     className="w-12 h-12 object-contain border border-border-col rounded bg-bg-light p-1 flex-shrink-0"
-                    onError={(e) => { e.target.src = 'https://placehold.co/48x48/f7f7f7/999?text=P' }}
+                    onError={(e) => { e.target.src = placeholderImg }}
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-text-primary">{item.name}</p>
@@ -281,10 +281,10 @@ export default function SellerOrders() {
                         {order.items.slice(0, 4).map((item) => (
                           <img
                             key={item._id || item.product}
-                            src={item.image || 'https://placehold.co/32x32/f7f7f7/999?text=P'}
+                            src={item.image ? img(item.image) : placeholderImg}
                             alt={item.name}
                             className="w-8 h-8 rounded-full border-2 border-white object-contain bg-bg-light"
-                            onError={(e) => { e.target.src = 'https://placehold.co/32x32/f7f7f7/999?text=P' }}
+                            onError={(e) => { e.target.src = placeholderImg }}
                           />
                         ))}
                       </div>
