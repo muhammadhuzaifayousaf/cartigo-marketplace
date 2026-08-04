@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { loginUser as apiLogin, registerUser as apiRegister } from '../services/api'
 
 const AuthContext = createContext()
@@ -19,11 +19,23 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(loadUser)
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || '')
 
+  const refreshAuthState = useCallback(() => {
+    const storedUser = loadUser()
+    const storedToken = localStorage.getItem(TOKEN_KEY) || ''
+    setUser(storedUser)
+    setToken(storedToken)
+  }, [])
+
+  useEffect(() => {
+    refreshAuthState()
+  }, [refreshAuthState])
+
   const isLoggedIn = Boolean(token)
+  const userRole = user?.role || loadUser()?.role || null
   // Convenience flags used to branch navigation between customer and seller UIs.
-  const isAdmin = user?.role === 'admin'
+  const isAdmin = userRole === 'admin'
   // Admins have full seller capabilities (dashboard, products, orders, approvals).
-  const isSeller = user?.role === 'seller' || user?.role === 'admin'
+  const isSeller = userRole === 'seller' || userRole === 'admin'
 
   const login = useCallback(async (email, password) => {
     const data = await apiLogin({ email, password })
@@ -48,7 +60,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoggedIn, isAdmin, isSeller, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoggedIn, isAdmin, isSeller, login, register, logout, refreshAuthState }}>
       {children}
     </AuthContext.Provider>
   )

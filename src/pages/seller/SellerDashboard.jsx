@@ -4,8 +4,19 @@ import {
   Package, ClipboardList, DollarSign, Clock, CheckCircle2, Loader2, AlertCircle, RefreshCw,
 } from 'lucide-react'
 import { fetchSellerProducts, fetchSellerOrders } from '../../services/api'
+import { fetchSellerReviews } from '../../services/reviewApi'
 import { formatPrice } from '../../utils/helpers'
+import StarRating from '../../components/StarRating'
 import { useAuth } from '../../context/AuthContext'
+
+const formatDate = (iso) => {
+  if (!iso) return ''
+  return new Date(iso).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
 
 function StatCard({ icon: Icon, label, value, accent = 'text-primary bg-primary-light' }) {
   return (
@@ -31,6 +42,7 @@ export default function SellerDashboard() {
   const { user } = useAuth()
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
+  const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -38,12 +50,14 @@ export default function SellerDashboard() {
     setLoading(true)
     setError(null)
     try {
-      const [productData, orderData] = await Promise.all([
+      const [productData, orderData, reviewData] = await Promise.all([
         fetchSellerProducts(),
         fetchSellerOrders(),
+        fetchSellerReviews(),
       ])
       setProducts(productData)
       setOrders(orderData)
+      setReviews(reviewData)
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to load dashboard')
     } finally {
@@ -172,6 +186,38 @@ export default function SellerDashboard() {
             </ul>
           )}
         </div>
+      </div>
+
+      {/* Recent reviews */}
+      <div className="bg-white rounded-lg border border-border-col p-4 sm:p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-text-primary">Recent reviews</h2>
+          <Link to="/seller/products" className="text-sm text-primary hover:underline">
+            View products
+          </Link>
+        </div>
+        {reviews.length === 0 ? (
+          <p className="text-sm text-text-muted py-6 text-center">
+            No reviews yet. Reviews appear here once customers receive their orders.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border-col">
+            {reviews.slice(0, 5).map((review) => (
+              <li key={review._id} className="py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-text-primary truncate">
+                    {review.product?.name || 'Product'}
+                  </p>
+                  <StarRating rating={review.rating} maxRating={5} size="sm" />
+                </div>
+                <p className="text-xs text-text-muted mt-1">
+                  {review.user?.name || 'Customer'} · {formatDate(review.createdAt)}
+                </p>
+                <p className="text-sm text-text-secondary mt-1 line-clamp-2">{review.comment}</p>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   )

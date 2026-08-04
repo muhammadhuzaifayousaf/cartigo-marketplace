@@ -4,9 +4,13 @@ import StarRating from './StarRating'
 import { img, formatPrice } from '../utils/helpers'
 import { useCart } from '../context/CartContext'
 import { useToast } from '../context/ToastContext'
+import { useAuth } from '../context/AuthContext'
 
 // ── Grid Card ──────────────────────────────────────────────────────────────
 function GridCard({ product, onWishlist, wishlisted, onAddToCart }) {
+  const rating = product.totalReviews > 0 ? product.averageRating : product.rating
+  const reviewCount = product.totalReviews > 0 ? product.totalReviews : product.reviews || 0
+
   return (
     <div className="product-card overflow-hidden group relative">
       {/* Wishlist button */}
@@ -46,8 +50,13 @@ function GridCard({ product, onWishlist, wishlisted, onAddToCart }) {
 
           {/* Rating */}
           <div className="flex items-center gap-1 mt-1">
-            <StarRating rating={product.rating} />
-            <span className="text-xs text-text-muted">{product.rating}</span>
+            <StarRating rating={rating} maxRating={5} />
+            <span className="text-xs text-text-muted">
+              {rating ? rating.toFixed(1) : '—'}
+            </span>
+            {reviewCount > 0 && (
+              <span className="text-xs text-text-muted">({reviewCount})</span>
+            )}
           </div>
 
           {/* Seller */}
@@ -77,6 +86,9 @@ function GridCard({ product, onWishlist, wishlisted, onAddToCart }) {
 
 // ── List Card ──────────────────────────────────────────────────────────────
 function ListCard({ product, onWishlist, wishlisted, onAddToCart }) {
+  const rating = product.totalReviews > 0 ? product.averageRating : product.rating
+  const reviewCount = product.totalReviews > 0 ? product.totalReviews : product.reviews || 0
+
   return (
     <div className="product-card p-4 flex gap-4">
       <Link to={`/products/${product.id}`} className="flex-shrink-0">
@@ -110,8 +122,11 @@ function ListCard({ product, onWishlist, wishlisted, onAddToCart }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 mt-1">
-          <StarRating rating={product.rating} />
-          <span className="text-sm text-text-muted">{product.rating}</span>
+          <StarRating rating={rating} maxRating={5} />
+          <span className="text-sm text-text-muted">{rating ? rating.toFixed(1) : '—'}</span>
+          {reviewCount > 0 && (
+            <span className="text-sm text-text-muted">({reviewCount} reviews)</span>
+          )}
           <span className="text-text-muted">•</span>
           <span className="text-sm text-text-muted">{product.orders} orders</span>
           {product.freeShipping && (
@@ -158,8 +173,14 @@ export default function ProductCard({ product, mode = 'grid', wishlistIds = [], 
   const wishlisted = wishlistIds.includes(product.id)
   const { addItem } = useCart()
   const showToast = useToast()
+  const { isSeller } = useAuth()
 
   const handleAddToCart = (p) => {
+    if (isSeller) {
+      showToast('Sellers cannot buy products.', { type: 'info', duration: 3000 })
+      return
+    }
+
     addItem({
       id: p.id,
       name: p.name,

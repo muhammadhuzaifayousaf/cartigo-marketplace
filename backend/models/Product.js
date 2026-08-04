@@ -10,6 +10,8 @@ const mongoose = require('mongoose');
  * - name, price, image, description, category, stock (required)
  * - seller (User ref), sellerName (display fallback), images (Cloudinary URLs)
  * - brand, originalPrice, rating, orders, reviews, specs, features (optional)
+ * - reviewDocs/averageRating/totalReviews: real customer reviews + aggregates
+ *   (reviewDocs is a cache of the Review collection, recomputed on mutation)
  */
 const productSchema = new mongoose.Schema(
   {
@@ -90,6 +92,25 @@ const productSchema = new mongoose.Schema(
       default: 0,
     },
     reviews: {
+      type: Number,
+      default: 0,
+    },
+    // Real customer reviews, cached from the Review collection so the
+    // storefront can render them without extra requests. Recomputed
+    // (along with averageRating/totalReviews) after every review mutation.
+    reviewDocs: {
+      type: [mongoose.Schema.Types.Mixed],
+      default: [],
+    },
+    // Average of the real customer reviews (0 when none exist yet).
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+    // Count of real customer reviews.
+    totalReviews: {
       type: Number,
       default: 0,
     },

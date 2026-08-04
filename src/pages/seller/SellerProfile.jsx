@@ -1,12 +1,33 @@
-import { Mail, User, BadgeCheck, Store } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Mail, User, BadgeCheck, Store, Star } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { fetchSellerProducts } from '../../services/api'
+import StarRating from '../../components/StarRating'
 
 /**
- * SellerProfile — read-only profile card. Extension point for future
- * seller onboarding/approval (e.g. payout details, documents).
+ * SellerProfile — read-only profile card with the seller's overall
+ * store rating (aggregated across their products' reviews).
  */
 export default function SellerProfile() {
   const { user } = useAuth()
+  const [rating, setRating] = useState(null)
+
+  useEffect(() => {
+    fetchSellerProducts()
+      .then((products) => {
+        const totalReviews = products.reduce((sum, p) => sum + (p.totalReviews || 0), 0)
+        const weighted = products.reduce(
+          (sum, p) => sum + (p.averageRating || 0) * (p.totalReviews || 0),
+          0
+        )
+        setRating({
+          totalReviews,
+          averageRating:
+            totalReviews > 0 ? Math.round((weighted / totalReviews) * 100) / 100 : 0,
+        })
+      })
+      .catch(() => setRating({ totalReviews: 0, averageRating: 0 }))
+  }, [])
 
   const rows = [
     { label: 'Full name', value: user?.name, icon: User },
@@ -41,6 +62,25 @@ export default function SellerProfile() {
               <dd className="text-sm font-medium text-text-primary flex-1">{value}</dd>
             </div>
           ))}
+          <div className="py-3 flex items-center gap-3">
+            <Star size={18} className="text-text-muted" />
+            <dt className="text-sm text-text-secondary w-36">Rating</dt>
+            <dd className="text-sm font-medium text-text-primary flex-1 flex items-center gap-2">
+              {rating === null ? (
+                <span className="text-text-muted">Loading…</span>
+              ) : rating.totalReviews > 0 ? (
+                <>
+                  <StarRating rating={rating.averageRating} maxRating={5} />
+                  <span>
+                    {rating.averageRating.toFixed(1)} ({rating.totalReviews}{' '}
+                    {rating.totalReviews === 1 ? 'review' : 'reviews'})
+                  </span>
+                </>
+              ) : (
+                <span className="text-text-muted">No reviews yet</span>
+              )}
+            </dd>
+          </div>
         </dl>
       </div>
     </div>

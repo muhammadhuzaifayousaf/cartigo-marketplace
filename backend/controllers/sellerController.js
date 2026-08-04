@@ -3,6 +3,7 @@
  * Handles seller product CRUD and Cloudinary image cleanup.
  */
 const { Product } = require('../models/Product');
+const Review = require('../models/Review');
 const { cloudinary, isCloudinaryConfigured } = require('../config/cloudinary');
 const { PRODUCT_CATEGORIES, isProductCategory } = require('../config/categories');
 
@@ -214,6 +215,7 @@ const deleteMyProduct = async (req, res) => {
 
   const images = product.images || (product.image ? [product.image] : []);
   await Promise.all(images.map(deleteFromCloudinary));
+  await Review.deleteMany({ product: product._id });
   await Product.deleteOne({ _id: product._id });
 
   res.status(200).json({

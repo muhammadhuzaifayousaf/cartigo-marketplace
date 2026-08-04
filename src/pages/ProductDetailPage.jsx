@@ -4,11 +4,14 @@ import { Heart, ShoppingCart, Star, Shield, Globe, ChevronLeft, Loader2, AlertCi
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import StarRating from '../components/StarRating'
+import ReviewsSection from '../components/ReviewsSection'
 import PromoBanner from '../components/PromoBanner'
 import { fetchProductById, fetchProducts } from '../services/api'
+import { fetchSellerRating } from '../services/reviewApi'
 import { img, formatPrice } from '../utils/helpers'
 import { useCart } from '../context/CartContext'
 import { useToast } from '../context/ToastContext'
+import { useAuth } from '../context/AuthContext'
 import Flag from 'react-world-flags'
 
 // "You may like" sidebar items (static data matching design)
@@ -58,6 +61,7 @@ export default function ProductDetailPage() {
   const navigate   = useNavigate()
   const { addItem } = useCart()
   const showToast = useToast()
+  const { isSeller } = useAuth()
 
   // ── Backend data state ──
   const [product, setProduct]           = useState(null)
@@ -69,6 +73,7 @@ export default function ProductDetailPage() {
   const [activeTab,     setActiveTab]     = useState('description')
   const [wishlisted,    setWishlisted]    = useState(false)
   const [qty,           setQty]           = useState(1)
+  const [sellerStats,   setSellerStats]   = useState(null)
 
   // ── Fetch single product + all products for related section ──
   const loadProduct = useCallback(async () => {
@@ -105,6 +110,20 @@ export default function ProductDetailPage() {
     setQty(1)
   }, [loadProduct])
 
+  // Fetch the seller's aggregate rating for the supplier card.
+  useEffect(() => {
+    let cancelled = false
+    if (product?.seller) {
+      setSellerStats(null)
+      fetchSellerRating(product.seller)
+        .then((data) => { if (!cancelled) setSellerStats(data) })
+        .catch(() => { if (!cancelled) setSellerStats(null) })
+    } else {
+      setSellerStats(null)
+    }
+    return () => { cancelled = true }
+  }, [product?.seller])
+
   // ── Loading State ──
   if (loading) {
     return (
@@ -136,6 +155,26 @@ export default function ProductDetailPage() {
   const tabs = ['description', 'reviews', 'shipping', 'about seller']
   const sellerName = product.sellerName || 'ShopHub'
   const sellerInitial = (sellerName.charAt(0) || 'S').toUpperCase()
+
+  // Use real customer review data when available; fall back to the
+  // product's seeded rating/review count before any reviews exist.
+  const displayRating =
+    product.totalReviews > 0 ? product.averageRating : product.rating
+  const displayReviewCount =
+    product.totalReviews > 0 ? product.totalReviews : product.reviews || 0
+
+  // Supplier card rating: the seller's aggregate rating when the product
+  // belongs to a real seller; otherwise the product's own rating.
+  const supplierRatingText =
+    !product.seller
+      ? displayReviewCount > 0
+        ? `${displayRating.toFixed(1)} (${displayReviewCount} ${displayReviewCount === 1 ? 'review' : 'reviews'})`
+        : 'No reviews yet'
+      : sellerStats
+        ? sellerStats.totalReviews > 0
+          ? `${sellerStats.averageRating.toFixed(1)} (${sellerStats.totalReviews} ${sellerStats.totalReviews === 1 ? 'review' : 'reviews'})`
+          : 'No reviews yet'
+        : 'Loading…'
 
   const priceTiers = [
     { range: '1-49 pcs',   price: product.price },
@@ -206,10 +245,10 @@ export default function ProductDetailPage() {
             </h1>
 
             <div className="flex items-center gap-3 text-sm text-text-muted mb-4">
-              <StarRating rating={product.rating} size="md" />
-              <span className="font-medium">{product.rating}</span>
+              <StarRating rating={displayRating} size="md" maxRating={5} />
+              <span className="font-medium">{displayReviewCount > 0 ? displayRating.toFixed(1) : 'No ratings'}</span>
               <span className="flex items-center gap-1">
-                💬 {product.reviews || 32} reviews
+                💬 {displayReviewCount} reviews
               </span>
               <span className="flex items-center gap-1">
                 🛒 {product.orders || 120} sold
@@ -271,6 +310,11 @@ export default function ProductDetailPage() {
               </select>
               <button
                 onClick={() => {
+                  if (isSeller) {
+                    showToast('Sellers cannot buy products.', { type: 'info', duration: 3000 })
+                    return
+                  }
+
                   addItem({
                     id: product.id,
                     name: product.name,
@@ -299,6 +343,10 @@ export default function ProductDetailPage() {
               <div>
                 <p className="text-xs uppercase tracking-wide text-text-muted">Supplier</p>
                 <p className="font-semibold text-text-primary text-sm">{sellerName}</p>
+                <p className="flex items-center gap-1 text-xs text-text-secondary mt-1">
+                  <Star size={12} className="star-filled flex-shrink-0" />
+                  <span className="font-medium text-text-primary">{supplierRatingText}</span>
+                </p>
               </div>
             </div>
             
@@ -394,10 +442,24 @@ export default function ProductDetailPage() {
                 </div>
               )}
               {activeTab === 'reviews' && (
-                <div className="text-sm text-text-muted py-6 text-center">
-                  <Star size={32} className="mx-auto mb-2 text-yellow-400" />
-                  <p>{product.reviews || 32} customer reviews — average rating {product.rating}/10</p>
-                </div>
+                <ReviewsSection
+                  productId={product.id}
+                  productName={product.name}
+                  fallbackRating={product.rating}
+                  fallbackCount={product.reviews || 0}
+                  onSummaryChange={(summary) =>
+                    setProduct((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            averageRating: summary.averageRating,
+                            totalReviews: summary.totalReviews,
+                            reviewDocs: summary.reviews,
+                          }
+                        : prev
+                    )
+                  }
+                />
               )}
               {activeTab === 'shipping' && (
                 <p className="text-sm text-text-secondary">Free worldwide shipping on orders over $50.</p>
