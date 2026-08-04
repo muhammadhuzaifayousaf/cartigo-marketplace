@@ -251,7 +251,7 @@ export default function ProductDetailPage() {
                 💬 {displayReviewCount} reviews
               </span>
               <span className="flex items-center gap-1">
-                🛒 {product.orders || 120} sold
+                🛒 {product.orders || 0} sold
               </span>
             </div>
 
@@ -408,11 +408,6 @@ export default function ProductDetailPage() {
                 <div className="space-y-4">
                   <p className="text-sm text-text-secondary leading-relaxed">
                     {product.description}
-                  </p>
-                  <p className="text-sm text-text-secondary leading-relaxed">
-                    Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.
                   </p>
 
                   {/* Specs table */}

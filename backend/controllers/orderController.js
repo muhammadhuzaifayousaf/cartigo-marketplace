@@ -113,6 +113,23 @@ const getSellerOrders = async (req, res) => {
 };
 
 /**
+ * Apply the effects of a successful delivery: decrement each item's product
+ * stock and bump its sold count by the delivered quantity. Products that no
+ * longer exist are skipped. Called exactly once per order (guarded by
+ * deliveryProcessed).
+ */
+const processDeliveredOrder = async (order) => {
+  for (const item of order.items) {
+    const product = await Product.findById(item.product);
+    if (!product) continue;
+
+    product.stock = Math.max(0, (product.stock || 0) - item.qty);
+    product.orders = (product.orders || 0) + item.qty;
+    await product.save();
+  }
+};
+
+/**
  * @desc    Update an order's status (tracking)
  * @route   PUT /api/orders/:id/status
  * @access  Private (seller owning an item on the order, or admin)
@@ -146,6 +163,12 @@ const updateOrderStatus = async (req, res) => {
   }
 
   order.status = status;
+
+  if (status === 'Delivered' && !order.deliveryProcessed) {
+    await processDeliveredOrder(order);
+    order.deliveryProcessed = true;
+  }
+
   await order.save();
 
   res.status(200).json({

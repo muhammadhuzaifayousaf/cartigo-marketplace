@@ -61,6 +61,13 @@ const orderSchema = new mongoose.Schema(
       enum: ['Pending', 'Confirmed', 'In Transit', 'Arrived', 'Delivered', 'Cancelled'],
       default: 'Pending',
     },
+    // True once the delivered order has affected product stock/orders so the
+    // effects are applied exactly once (setting status back to Delivered won't
+    // decrement stock or bump the sold count again).
+    deliveryProcessed: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

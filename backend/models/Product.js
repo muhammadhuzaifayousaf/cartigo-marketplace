@@ -148,7 +148,7 @@ const seedProducts = [
     sellerName: 'Artel Market',
     verified: true,
     originalPrice: 159.99,
-    orders: 152,
+    orders: 0,
     reviews: 28,
   },
   {
@@ -163,7 +163,7 @@ const seedProducts = [
     sellerName: 'Bright Labs',
     verified: true,
     originalPrice: 999.0,
-    orders: 87,
+    orders: 0,
     reviews: 19,
   },
   {
@@ -178,7 +178,7 @@ const seedProducts = [
     sellerName: 'Adventure Co.',
     verified: false,
     originalPrice: 299.5,
-    orders: 134,
+    orders: 0,
     reviews: 22,
   },
   {
@@ -193,7 +193,7 @@ const seedProducts = [
     sellerName: 'Pulse Gear',
     verified: true,
     originalPrice: 229.99,
-    orders: 201,
+    orders: 0,
     reviews: 45,
   },
   {
@@ -208,7 +208,7 @@ const seedProducts = [
     sellerName: 'FitHouse',
     verified: false,
     originalPrice: 109.0,
-    orders: 98,
+    orders: 0,
     reviews: 15,
   },
   {
@@ -223,7 +223,7 @@ const seedProducts = [
     sellerName: 'Studio North',
     verified: false,
     originalPrice: 94.5,
-    orders: 76,
+    orders: 0,
     reviews: 11,
   },
   {
@@ -238,7 +238,7 @@ const seedProducts = [
     sellerName: 'Urban Carry',
     verified: true,
     originalPrice: 79.99,
-    orders: 143,
+    orders: 0,
     reviews: 31,
   },
   {
@@ -253,7 +253,7 @@ const seedProducts = [
     sellerName: 'Threadworks',
     verified: false,
     originalPrice: 34.99,
-    orders: 267,
+    orders: 0,
     reviews: 52,
   },
   {
@@ -268,7 +268,7 @@ const seedProducts = [
     sellerName: 'Homebase',
     verified: false,
     originalPrice: 69.0,
-    orders: 65,
+    orders: 0,
     reviews: 8,
   },
   {
@@ -283,19 +283,19 @@ const seedProducts = [
     sellerName: 'Kitchen Lane',
     verified: false,
     originalPrice: 89.5,
-    orders: 89,
+    orders: 0,
     reviews: 14,
   },
   {
     name: 'Apple iPhone 12 Pro 256GB Blue',
     price: 298.0,
     image: 'phone1.jpg',
-    description: 'Flagship iPhone with triple camera system. Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+    description: 'Flagship iPhone with triple camera system.',
     category: 'Electronics',
     stock: 25,
     rating: 4.8,
     reviews: 32,
-    orders: 154,
+    orders: 0,
     brand: 'Apple',
     sellerName: 'Guanjoi Trading LLC',
     verified: true,
@@ -325,7 +325,7 @@ const seedProducts = [
     sellerName: 'Carry Studio',
     verified: false,
     originalPrice: 59.0,
-    orders: 112,
+    orders: 0,
     reviews: 18,
   },
   {
@@ -340,7 +340,7 @@ const seedProducts = [
     sellerName: 'Style Co.',
     verified: true,
     originalPrice: 49.99,
-    orders: 178,
+    orders: 0,
     reviews: 23,
   },
   {
@@ -355,7 +355,7 @@ const seedProducts = [
     sellerName: 'Homebase',
     verified: true,
     originalPrice: 149.0,
-    orders: 56,
+    orders: 0,
     reviews: 9,
   },
   {
@@ -370,7 +370,7 @@ const seedProducts = [
     sellerName: 'Bright Labs',
     verified: false,
     originalPrice: 59.0,
-    orders: 121,
+    orders: 0,
     reviews: 17,
   },
   {
@@ -385,7 +385,7 @@ const seedProducts = [
     sellerName: 'Homebase',
     verified: false,
     originalPrice: 299.0,
-    orders: 43,
+    orders: 0,
     reviews: 7,
   },
   {
@@ -400,7 +400,7 @@ const seedProducts = [
     sellerName: 'Pulse Gear',
     verified: true,
     originalPrice: 99.99,
-    orders: 168,
+    orders: 0,
     reviews: 24,
   },
   {
@@ -415,7 +415,7 @@ const seedProducts = [
     sellerName: 'FitHouse',
     verified: false,
     originalPrice: 149.0,
-    orders: 74,
+    orders: 0,
     reviews: 12,
   },
   {
@@ -430,7 +430,7 @@ const seedProducts = [
     sellerName: 'Urban Carry',
     verified: false,
     originalPrice: 79.5,
-    orders: 95,
+    orders: 0,
     reviews: 13,
   },
   {
@@ -445,7 +445,7 @@ const seedProducts = [
     sellerName: 'Kitchen Lane',
     verified: false,
     originalPrice: 54.99,
-    orders: 132,
+    orders: 0,
     reviews: 20,
   },
 ];

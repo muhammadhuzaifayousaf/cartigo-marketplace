@@ -147,7 +147,12 @@ export default function SellerDashboard() {
                     onError={(e) => { e.target.src = 'https://placehold.co/40x40/f7f7f7/999?text=P' }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-text-primary truncate">{p.name}</p>
+                    <Link
+                      to={`/products/${p._id}`}
+                      className="text-sm font-medium text-text-primary truncate hover:text-primary transition-colors"
+                    >
+                      {p.name}
+                    </Link>
                     <p className="text-xs text-text-muted">{formatPrice(p.price)} · Stock: {p.stock}</p>
                   </div>
                 </li>
@@ -205,9 +210,12 @@ export default function SellerDashboard() {
             {reviews.slice(0, 5).map((review) => (
               <li key={review._id} className="py-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium text-text-primary truncate">
+                  <Link
+                    to={`/products/${review.product?._id}`}
+                    className="text-sm font-medium text-text-primary truncate hover:text-primary transition-colors"
+                  >
                     {review.product?.name || 'Product'}
-                  </p>
+                  </Link>
                   <StarRating rating={review.rating} maxRating={5} size="sm" />
                 </div>
                 <p className="text-xs text-text-muted mt-1">

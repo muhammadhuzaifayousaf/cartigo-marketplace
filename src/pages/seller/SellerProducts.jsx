@@ -134,7 +134,12 @@ export default function SellerProducts() {
                           className="w-12 h-12 object-contain border border-border-col rounded bg-bg-light p-1 flex-shrink-0"
                           onError={(e) => { e.target.src = 'https://placehold.co/48x48/f7f7f7/999?text=P' }}
                         />
-                        <span className="font-medium text-text-primary line-clamp-2 max-w-xs">{p.name}</span>
+                        <Link
+                          to={`/products/${p._id}`}
+                          className="font-medium text-text-primary line-clamp-2 max-w-xs hover:text-primary transition-colors"
+                        >
+                          {p.name}
+                        </Link>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-text-primary font-medium">{formatPrice(p.price)}</td>
@@ -192,7 +197,12 @@ export default function SellerProducts() {
                   onError={(e) => { e.target.src = 'https://placehold.co/64x64/f7f7f7/999?text=P' }}
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-text-primary line-clamp-2">{p.name}</p>
+                  <Link
+                    to={`/products/${p._id}`}
+                    className="text-sm font-medium text-text-primary line-clamp-2 hover:text-primary transition-colors"
+                  >
+                    {p.name}
+                  </Link>
                   <p className="text-sm font-semibold text-text-primary mt-1">{formatPrice(p.price)}</p>
                   <p className="text-xs text-text-muted">{p.category} · Stock: {p.stock}</p>
                   <div className="flex items-center justify-between gap-2 mt-1.5">
