@@ -6,6 +6,7 @@
 const User = require('../models/User');
 const validator = require('validator');
 const generateToken = require('../utils/generateToken');
+const { isBusinessCategory } = require('../config/categories');
 
 /**
  * Build the user payload returned to the client (never the password).
@@ -16,6 +17,7 @@ const buildAuthPayload = (user) => ({
   name: user.name,
   email: user.email,
   role: user.role,
+  avatar: user.avatar || '',
   token: generateToken(user._id),
 });
 
@@ -25,7 +27,7 @@ const buildAuthPayload = (user) => ({
  * @access  Public
  */
 const registerUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, location, businessCategory } = req.body;
 
   if (!name || !email || !password) {
     return res.status(400).json({
@@ -51,6 +53,23 @@ const registerUser = async (req, res) => {
   // Only 'user' and 'seller' can self-register. 'admin' is reserved.
   const selectedRole = role === 'seller' ? 'seller' : 'user';
 
+  // Sellers must pick a location and a business category during registration;
+  // both become read-only once the account exists.
+  if (selectedRole === 'seller') {
+    if (!location || !String(location).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Location is required for seller accounts',
+      });
+    }
+    if (!businessCategory || !isBusinessCategory(businessCategory)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please choose a valid business category',
+      });
+    }
+  }
+
   const existing = await User.findOne({ email: email.toLowerCase() });
   if (existing) {
     return res.status(400).json({
@@ -59,7 +78,18 @@ const registerUser = async (req, res) => {
     });
   }
 
-  const user = await User.create({ name, email, password, role: selectedRole });
+  const user = await User.create({
+    name,
+    email,
+    password,
+    role: selectedRole,
+    ...(selectedRole === 'seller'
+      ? {
+          location: String(location).trim(),
+          businessCategory,
+        }
+      : {}),
+  });
 
   res.status(201).json({
     success: true,

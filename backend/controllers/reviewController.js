@@ -19,7 +19,7 @@ const mongoose = require('mongoose');
  */
 const recalcProductReviews = async (productId) => {
   const reviews = await Review.find({ product: productId })
-    .populate('user', 'name')
+    .populate('user', 'name avatar')
     .sort({ createdAt: -1 });
 
   const totalReviews = reviews.length;
@@ -32,6 +32,7 @@ const recalcProductReviews = async (productId) => {
     reviewDocs: reviews.map((r) => ({
       user: r.user?._id || r.user,
       userName: r.user?.name || 'Customer',
+      userAvatar: r.user?.avatar || '',
       rating: r.rating,
       title: r.title,
       comment: r.comment,
@@ -61,7 +62,7 @@ const buildDistribution = (reviews) => {
 const getProductReviews = async (req, res) => {
   try {
     const reviews = await Review.find({ product: req.params.productId })
-      .populate('user', 'name')
+      .populate('user', 'name avatar')
       .sort({ createdAt: -1 });
 
     const totalReviews = reviews.length;
@@ -175,7 +176,7 @@ const getSellerReviews = async (req, res) => {
     }
 
     const reviews = await Review.find({ product: { $in: productIds } })
-      .populate('user', 'name')
+      .populate('user', 'name avatar')
       .populate('product', 'name')
       .sort({ createdAt: -1 });
 

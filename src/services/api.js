@@ -193,6 +193,51 @@ export const fetchSellerOrders = async () => {
   return response.data.data;
 };
 
+/* ── Profile endpoints ────────────────────────────────────────────────────── */
+
+/**
+ * Fetch the authenticated user's own full profile (private).
+ * @returns {Promise<Object>} User document (without password)
+ */
+export const fetchMyProfile = async () => {
+  const response = await api.get('/users/me');
+  return response.data.data;
+};
+
+/**
+ * Update the authenticated user's own editable profile fields (private).
+ * @param {Object} payload - Role-dependent editable fields
+ * @returns {Promise<Object>} Updated user document
+ */
+export const updateMyProfile = async (payload) => {
+  const response = await api.put('/users/me', payload);
+  return response.data.data;
+};
+
+/**
+ * Upload/replace the authenticated user's avatar (private, multipart).
+ * @param {File} file - Image file (jpg/png/webp, up to 5MB)
+ * @returns {Promise<Object>} Updated user document
+ */
+export const uploadMyAvatar = async (file) => {
+  const formData = new FormData();
+  formData.append('avatar', file);
+  const response = await api.put('/users/me/avatar', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data.data;
+};
+
+/**
+ * Fetch a user's public profile card (public).
+ * @param {string} id - User ID
+ * @returns {Promise<Object>} Public profile (customer or seller shape)
+ */
+export const fetchPublicProfile = async (id) => {
+  const response = await api.get(`/users/${id}/public`);
+  return response.data.data;
+};
+
 /* ── Admin endpoints ──────────────────────────────────────────────────────── */
 
 /**

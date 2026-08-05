@@ -1,18 +1,18 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { Heart, ShoppingCart, Star, Shield, Globe, ChevronLeft, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
+import { Heart, ShoppingCart, Star, Shield, Globe, ChevronLeft, Loader2, AlertCircle, RefreshCw, MapPin, Calendar } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import StarRating from '../components/StarRating'
 import ReviewsSection from '../components/ReviewsSection'
 import PromoBanner from '../components/PromoBanner'
-import { fetchProductById, fetchProducts } from '../services/api'
+import { fetchProductById, fetchProducts, fetchPublicProfile } from '../services/api'
 import { fetchSellerRating } from '../services/reviewApi'
 import { img, formatPrice } from '../utils/helpers'
+import Avatar from '../components/Avatar'
 import { useCart } from '../context/CartContext'
 import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
-import Flag from 'react-world-flags'
 
 // "You may like" sidebar items (static data matching design)
 const youMayLike = [
@@ -74,6 +74,7 @@ export default function ProductDetailPage() {
   const [wishlisted,    setWishlisted]    = useState(false)
   const [qty,           setQty]           = useState(1)
   const [sellerStats,   setSellerStats]   = useState(null)
+  const [sellerProfile, setSellerProfile] = useState(null)
 
   // ── Fetch single product + all products for related section ──
   const loadProduct = useCallback(async () => {
@@ -110,16 +111,21 @@ export default function ProductDetailPage() {
     setQty(1)
   }, [loadProduct])
 
-  // Fetch the seller's aggregate rating for the supplier card.
+  // Fetch the seller's aggregate rating + public profile for the supplier card.
   useEffect(() => {
     let cancelled = false
     if (product?.seller) {
       setSellerStats(null)
+      setSellerProfile(null)
       fetchSellerRating(product.seller)
         .then((data) => { if (!cancelled) setSellerStats(data) })
         .catch(() => { if (!cancelled) setSellerStats(null) })
+      fetchPublicProfile(product.seller)
+        .then((data) => { if (!cancelled) setSellerProfile(data) })
+        .catch(() => { if (!cancelled) setSellerProfile(null) })
     } else {
       setSellerStats(null)
+      setSellerProfile(null)
     }
     return () => { cancelled = true }
   }, [product?.seller])
@@ -154,7 +160,9 @@ export default function ProductDetailPage() {
     : Array(6).fill(product.image)
   const tabs = ['description', 'reviews', 'shipping', 'about seller']
   const sellerName = product.sellerName || 'ShopHub'
-  const sellerInitial = (sellerName.charAt(0) || 'S').toUpperCase()
+  const hasRealSeller = Boolean(product.seller)
+  const formatJoined = (iso) =>
+    iso ? new Date(iso).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''
 
   // Use real customer review data when available; fall back to the
   // product's seeded rating/review count before any reviews exist.
@@ -359,27 +367,40 @@ export default function ProductDetailPage() {
           {/* Supplier card */}
           <div className="bg-white rounded border border-border-col p-5 h-fit">
             <div className="flex items-start gap-3 mb-3">
-              <div className="w-10 h-10 bg-primary rounded flex items-center justify-center text-white font-bold text-lg">
-                {sellerInitial}
-              </div>
-              <div>
+              <Avatar name={sellerName} avatar={sellerProfile?.avatar} size={40} />
+              <div className="min-w-0">
                 <p className="text-xs uppercase tracking-wide text-text-muted">Supplier</p>
-                <p className="font-semibold text-text-primary text-sm">{sellerName}</p>
+                {hasRealSeller ? (
+                  <Link
+                    to={`/profile/${product.seller}`}
+                    className="font-semibold text-text-primary text-sm truncate hover:text-primary transition-colors"
+                  >
+                    {sellerName}
+                  </Link>
+                ) : (
+                  <p className="font-semibold text-text-primary text-sm truncate">{sellerName}</p>
+                )}
                 <p className="flex items-center gap-1 text-xs text-text-secondary mt-1">
                   <Star size={12} className="star-filled flex-shrink-0" />
                   <span className="font-medium text-text-primary">{supplierRatingText}</span>
                 </p>
               </div>
             </div>
-            
+
             <div className="space-y-1.5 mb-4 text-sm">
-              <div className="flex items-center gap-2 text-sm text-text-secondary">
-                <Flag code="DE" style={{ width: 16, height: 10, borderRadius: 1, objectFit: 'cover' }} />
-                <span>Germany, Berlin</span>
+              <div className="flex items-center gap-2 text-text-secondary">
+                <MapPin size={14} className="text-text-muted" />
+                <span>{hasRealSeller ? sellerProfile?.location || '—' : 'Germany, Berlin'}</span>
               </div>
               <div className="flex items-center gap-2 text-text-secondary">
-                <Shield size={14} className="text-success" /> Verified Seller
+                <Shield size={14} className="text-success" />{' '}
+                {hasRealSeller ? (product.verified ? 'Verified Seller' : 'Pending verification') : 'Verified Seller'}
               </div>
+              {hasRealSeller && sellerProfile?.joinedDate && (
+                <div className="flex items-center gap-2 text-text-secondary">
+                  <Calendar size={14} className="text-text-muted" /> Joined {formatJoined(sellerProfile.joinedDate)}
+                </div>
+              )}
               <div className="flex items-center gap-2 text-text-secondary">
                 <Globe size={14} className="text-primary" /> Worldwide shipping
               </div>
@@ -388,9 +409,18 @@ export default function ProductDetailPage() {
               <button className="w-full bg-primary text-white py-2 rounded text-sm font-semibold hover:bg-primary-dark transition-colors">
                 Send inquiry
               </button>
-              <button className="w-full border border-border-col text-text-secondary py-2 rounded text-sm font-medium hover:border-primary hover:text-primary transition-colors">
-                Seller's profile
-              </button>
+              {hasRealSeller ? (
+                <Link
+                  to={`/profile/${product.seller}`}
+                  className="w-full flex items-center justify-center border border-border-col text-text-secondary py-2 rounded text-sm font-medium hover:border-primary hover:text-primary transition-colors"
+                >
+                  Seller's profile
+                </Link>
+              ) : (
+                <button className="w-full border border-border-col text-text-secondary py-2 rounded text-sm font-medium hover:border-primary hover:text-primary transition-colors">
+                  Seller's profile
+                </button>
+              )}
             </div>
             <button
               onClick={() => setWishlisted(!wishlisted)}

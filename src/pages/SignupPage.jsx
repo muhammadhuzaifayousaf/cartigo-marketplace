@@ -6,6 +6,7 @@ import FormInput from '../components/FormInput'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { validateEmail } from '../utils/helpers'
+import { BUSINESS_CATEGORIES } from '../data/categories'
 
 const ACCOUNT_TYPES = [
   { value: 'user', label: 'Customer', description: 'Browse, buy and track orders', icon: ShoppingBag },
@@ -21,6 +22,8 @@ export default function SignupPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    location: '',
+    businessCategory: '',
   })
   const [role, setRole] = useState('user')
   const [errors, setErrors] = useState({})
@@ -54,6 +57,14 @@ export default function SignupPage() {
     } else if (form.password !== form.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match'
     }
+    if (role === 'seller') {
+      if (!form.location.trim()) {
+        newErrors.location = 'Location is required'
+      }
+      if (!form.businessCategory) {
+        newErrors.businessCategory = 'Please choose a business category'
+      }
+    }
     return newErrors
   }
 
@@ -67,7 +78,15 @@ export default function SignupPage() {
 
     setIsSubmitting(true)
     try {
-      await register(form.name, form.email, form.password, role)
+      await register(
+        form.name,
+        form.email,
+        form.password,
+        role,
+        role === 'seller'
+          ? { location: form.location.trim(), businessCategory: form.businessCategory }
+          : {}
+      )
       showToast('Registration Successful')
       navigate('/login')
     } catch (error) {
@@ -89,7 +108,15 @@ export default function SignupPage() {
               <button
                 key={value}
                 type="button"
-                onClick={() => setRole(value)}
+                onClick={() => {
+                  setRole(value)
+                  if (value === 'user') {
+                    setErrors((prev) => {
+                      const { location, businessCategory, ...rest } = prev
+                      return rest
+                    })
+                  }
+                }}
                 aria-pressed={role === value}
                 className={`border rounded-lg p-3 text-left transition-all duration-200 ${
                   role === value
@@ -146,6 +173,47 @@ export default function SignupPage() {
           error={errors.confirmPassword}
           placeholder="Re-enter your password"
         />
+
+        {role === 'seller' && (
+          <>
+            <FormInput
+              label="Location"
+              type="text"
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+              error={errors.location}
+              placeholder="City or country"
+            />
+
+            <div className="mb-4">
+              <label htmlFor="businessCategory" className="block text-sm font-medium text-text-primary mb-1.5">
+                Business Category
+              </label>
+              <select
+                id="businessCategory"
+                name="businessCategory"
+                value={form.businessCategory}
+                onChange={handleChange}
+                className={`w-full px-4 py-2.5 text-sm border rounded-lg outline-none transition-all duration-200 bg-white ${
+                  errors.businessCategory
+                    ? 'border-danger focus:ring-2 focus:ring-danger/30'
+                    : 'border-border-col focus:border-primary focus:ring-2 focus:ring-primary/20'
+                }`}
+              >
+                <option value="">Select a category</option>
+                {BUSINESS_CATEGORIES.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+              {errors.businessCategory && (
+                <p className="mt-1 text-xs text-danger animate-fadeIn">{errors.businessCategory}</p>
+              )}
+            </div>
+          </>
+        )}
 
         <button
           type="submit"

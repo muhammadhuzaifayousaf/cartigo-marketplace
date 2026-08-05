@@ -4,6 +4,7 @@
  * management, and order status/tracking updates.
  */
 const Order = require('../models/Order');
+const User = require('../models/User');
 const { Product } = require('../models/Product');
 const { syncProductSoldState } = require('../utils/productSync');
 
@@ -200,10 +201,27 @@ const getOrderById = async (req, res) => {
  */
 const getSellerOrders = async (req, res) => {
   const orders = await Order.find({ 'items.seller': req.user._id }).sort({ createdAt: -1 });
+
+  // Attach a lightweight `customer` card (id/name/avatar) so the seller UI
+  // can render the buyer and link to their public profile. `order.user`
+  // keeps the raw ObjectId for backwards compatibility.
+  const userIds = [...new Set(orders.map((o) => o.user.toString()))];
+  const users = await User.find({ _id: { $in: userIds } }).select('name avatar').lean();
+  const userMap = new Map(users.map((u) => [u._id.toString(), u]));
+
+  const data = orders.map((order) => {
+    const serialized = serializeOrder(order);
+    const u = userMap.get(order.user.toString());
+    return {
+      ...serialized,
+      customer: u ? { _id: u._id, name: u.name, avatar: u.avatar || '' } : null,
+    };
+  });
+
   res.status(200).json({
     success: true,
-    count: orders.length,
-    data: orders.map(serializeOrder),
+    count: data.length,
+    data,
   });
 };
 

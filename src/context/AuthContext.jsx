@@ -39,7 +39,7 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const data = await apiLogin({ email, password })
-    const authUser = { _id: data._id, name: data.name, email: data.email, role: data.role }
+    const authUser = { _id: data._id, name: data.name, email: data.email, role: data.role, avatar: data.avatar || '' }
     localStorage.setItem(TOKEN_KEY, data.token)
     localStorage.setItem(USER_KEY, JSON.stringify(authUser))
     setToken(data.token)
@@ -47,9 +47,19 @@ export function AuthProvider({ children }) {
     return data
   }, [])
 
-  const register = useCallback(async (name, email, password, role = 'user') => {
-    const data = await apiRegister({ name, email, password, role })
+  const register = useCallback(async (name, email, password, role = 'user', extra = {}) => {
+    const data = await apiRegister({ name, email, password, role, ...extra })
     return data
+  }, [])
+
+  // Merge profile changes (avatar, editable fields) into the stored user so
+  // the navbar and profile pages update immediately without a re-login.
+  const updateUser = useCallback((patch) => {
+    setUser((prev) => {
+      const next = { ...(prev || {}), ...patch }
+      localStorage.setItem(USER_KEY, JSON.stringify(next))
+      return next
+    })
   }, [])
 
   const logout = useCallback(() => {
@@ -60,7 +70,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoggedIn, isAdmin, isSeller, login, register, logout, refreshAuthState }}>
+    <AuthContext.Provider value={{ user, token, isLoggedIn, isAdmin, isSeller, login, register, updateUser, logout, refreshAuthState }}>
       {children}
     </AuthContext.Provider>
   )

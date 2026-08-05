@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { img } from '../utils/helpers'
+import Avatar from './Avatar'
 
 const BASE_NAV_ITEMS = [
   { to: '/seller', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -84,9 +85,7 @@ export default function SellerLayout() {
             >
               <ArrowLeft size={16} /> Back to store
             </Link>
-            <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">
-              {userName.charAt(0).toUpperCase()}
-            </div>
+            <Avatar name={userName} avatar={user?.avatar} size={32} />
             <span className="hidden sm:block text-sm font-medium text-text-primary truncate max-w-[140px]">
               Hi, {userName.split(' ')[0]}
             </span>

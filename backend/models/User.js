@@ -34,6 +34,50 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'seller', 'admin'],
       default: 'user',
     },
+    // Cloudinary avatar URL. Customers and sellers both upload one.
+    avatar: {
+      type: String,
+      default: '',
+    },
+    // Contact phone — editable by both customers and sellers.
+    phone: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    // Short bio/about — customers control it fully; sellers cannot edit it
+    // (their store description lives in `description`).
+    about: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    // Geographic location shown on public profiles.
+    location: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    // Customer-only profile fields.
+    dob: {
+      type: String,
+      default: '',
+    },
+    gender: {
+      type: String,
+      default: '',
+    },
+    // Seller-only fields: what the store sells + the storefront blurb.
+    businessCategory: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    description: {
+      type: String,
+      default: '',
+      trim: true,
+    },
   },
   {
     timestamps: true,

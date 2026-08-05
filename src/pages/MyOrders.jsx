@@ -6,11 +6,14 @@ import Footer from '../components/Footer'
 import { fetchMyOrders, cancelOrder } from '../services/api'
 import { img, placeholderImg, formatPrice } from '../utils/helpers'
 import { useToast } from '../context/ToastContext'
+import { useAuth } from '../context/AuthContext'
+import Avatar from '../components/Avatar'
 
 /**
  * MyOrders — the customer's order history with a link to each tracking page.
  */
 export default function MyOrders() {
+  const { user } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -53,8 +56,21 @@ export default function MyOrders() {
     <div className="min-h-screen bg-bg-light">
       <Navbar />
       <main className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        <h1 className="text-xl sm:text-2xl font-bold text-text-primary mb-1">My Orders</h1>
-        <p className="text-sm text-text-muted mb-5">Track your purchases and view order history.</p>
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-text-primary mb-1">My Orders</h1>
+            <p className="text-sm text-text-muted">Track your purchases and view order history.</p>
+          </div>
+          {user?._id && (
+            <Link
+              to={`/profile/${user._id}`}
+              className="inline-flex items-center gap-2 bg-white border border-border-col hover:border-primary hover:text-primary text-text-secondary rounded-lg px-3.5 py-2 text-sm font-medium transition-colors"
+            >
+              <Avatar name={user.name} avatar={user.avatar} size={24} />
+              <span className="hidden sm:inline">View public profile</span>
+            </Link>
+          )}
+        </div>
 
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 text-text-muted">

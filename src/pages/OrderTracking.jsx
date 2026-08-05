@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Loader2, AlertCircle, RefreshCw, Check, X, MapPin, Package, Ban } from 'lucide-react'
+import { Loader2, AlertCircle, RefreshCw, Check, X, MapPin, Package, Ban, UserRound } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { fetchOrderById, cancelOrder, cancelItem } from '../services/api'
 import { img, placeholderImg, formatPrice } from '../utils/helpers'
 import { useToast } from '../context/ToastContext'
+import { useAuth } from '../context/AuthContext'
+import Avatar from '../components/Avatar'
 
 // Tracking order — later steps are "further along". Each item follows its own
 // copy of this timeline. Cancelled items only show Pending → Cancelled.
@@ -175,6 +177,7 @@ function ItemTimeline({ item, onCancelItem, confirming, cancelling, setConfirmin
  */
 export default function OrderTracking() {
   const { id } = useParams()
+  const { user } = useAuth()
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -272,17 +275,29 @@ export default function OrderTracking() {
                     {new Date(order.createdAt).toLocaleString()}
                   </p>
                 </div>
-                <span
-                  className={`text-sm font-semibold px-3 py-1 rounded-full ${
-                    cancelled
-                      ? 'bg-red-100 text-danger'
-                      : order.overallStatus === 'Delivered'
-                        ? 'bg-green-100 text-success'
-                        : 'bg-primary-light text-primary'
-                  }`}
-                >
-                  {order.overallStatus}
-                </span>
+                <div className="flex items-center gap-2">
+                  {user?._id && (
+                    <Link
+                      to={`/profile/${user._id}`}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary border border-border-col hover:border-primary hover:text-primary rounded-lg px-2.5 py-1.5 transition-colors"
+                    >
+                      <Avatar name={user.name} avatar={user.avatar} size={20} />
+                      <span className="hidden sm:inline">Public profile</span>
+                      <UserRound size={13} className="sm:hidden" />
+                    </Link>
+                  )}
+                  <span
+                    className={`text-sm font-semibold px-3 py-1 rounded-full ${
+                      cancelled
+                        ? 'bg-red-100 text-danger'
+                        : order.overallStatus === 'Delivered'
+                          ? 'bg-green-100 text-success'
+                          : 'bg-primary-light text-primary'
+                    }`}
+                  >
+                    {order.overallStatus}
+                  </span>
+                </div>
               </div>
 
               {/* Whole-order cancel — only when every item is still Pending */}

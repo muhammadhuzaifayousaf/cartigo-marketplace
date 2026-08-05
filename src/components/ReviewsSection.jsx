@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Loader2, Pencil, Trash2, Star, X, Check } from 'lucide-react'
 import StarRating from './StarRating'
 import StarRatingInput from './StarRatingInput'
+import Avatar from './Avatar'
 import {
   fetchProductReviews,
   fetchMyReview,
@@ -337,28 +338,45 @@ export default function ReviewsSection({
               </p>
             ) : (
               <ul className="space-y-3">
-                {summary?.reviews?.map((r) => (
-                  <li key={r._id} className="border border-border-col rounded-lg p-4">
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold flex-shrink-0">
-                          {(r.user?.name || 'U').charAt(0).toUpperCase()}
+                {summary?.reviews?.map((r) => {
+                  const reviewerId = r.user?._id || (typeof r.user === 'string' ? r.user : null)
+                  const reviewerName = r.user?.name || r.userName || 'Customer'
+                  const reviewerAvatar = r.user?.avatar || r.userAvatar || ''
+                  const name = reviewerId ? (
+                    <Link
+                      to={`/profile/${reviewerId}`}
+                      className="text-sm font-medium text-text-primary hover:text-primary hover:underline"
+                    >
+                      {reviewerName}
+                    </Link>
+                  ) : (
+                    <span className="text-sm font-medium text-text-primary">{reviewerName}</span>
+                  )
+                  return (
+                    <li key={r._id} className="border border-border-col rounded-lg p-4">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          {reviewerId ? (
+                            <Link to={`/profile/${reviewerId}`} className="flex-shrink-0">
+                              <Avatar name={reviewerName} avatar={reviewerAvatar} size={32} />
+                            </Link>
+                          ) : (
+                            <Avatar name={reviewerName} avatar={reviewerAvatar} size={32} />
+                          )}
+                          <div>
+                            <p>{name}</p>
+                            <p className="text-xs text-text-muted">{formatDate(r.createdAt)}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-text-primary">
-                            {r.user?.name || 'Customer'}
-                          </p>
-                          <p className="text-xs text-text-muted">{formatDate(r.createdAt)}</p>
-                        </div>
+                        <StarRating rating={r.rating} maxRating={5} />
                       </div>
-                      <StarRating rating={r.rating} maxRating={5} />
-                    </div>
-                    {r.title && (
-                      <p className="text-sm font-semibold text-text-primary mt-3">{r.title}</p>
-                    )}
-                    <p className="text-sm text-text-secondary mt-1 leading-relaxed">{r.comment}</p>
-                  </li>
-                ))}
+                      {r.title && (
+                        <p className="text-sm font-semibold text-text-primary mt-3">{r.title}</p>
+                      )}
+                      <p className="text-sm text-text-secondary mt-1 leading-relaxed">{r.comment}</p>
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </div>

@@ -10,6 +10,7 @@ import { navCategories, PRODUCT_CATEGORIES } from '../data/categories'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { img } from '../utils/helpers'
+import Avatar from './Avatar'
 
 function Logo() {
   return (
@@ -78,7 +79,6 @@ export default function Navbar() {
   }
 
   const userName = user?.name || ''
-  const userInitial = userName ? userName.charAt(0).toUpperCase() : 'U'
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -120,10 +120,8 @@ export default function Navbar() {
 
           {isLoggedIn ? (
             <div className="flex items-center gap-3">
-              <Link to={isSeller ? '/seller/profile' : '/orders'} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">
-                  {userInitial}
-                </div>
+              <Link to={isSeller ? '/seller/profile' : '/profile'} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <Avatar name={userName} avatar={user?.avatar} size={32} />
                 <span className="text-sm font-medium text-text-primary">
                   Hi, {userName.split(' ')[0]}
                 </span>
@@ -167,8 +165,8 @@ export default function Navbar() {
             </Link>
           )}
           {isLoggedIn ? (
-            <Link to={isSeller ? '/seller/profile' : '/orders'} className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">
-              {userInitial}
+            <Link to={isSeller ? '/seller/profile' : '/profile'} className="flex items-center">
+              <Avatar name={userName} avatar={user?.avatar} size={28} />
             </Link>
           ) : (
             <Link to="/login" className="text-text-secondary">
@@ -239,9 +237,13 @@ export default function Navbar() {
             <div className="px-4 py-4 border-b border-border-col">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center text-lg font-bold">
-                    {isLoggedIn ? userInitial : <User size={20} />}
-                  </div>
+                  {isLoggedIn ? (
+                    <Avatar name={userName} avatar={user?.avatar} size={44} variant="soft" />
+                  ) : (
+                    <div className="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                      <User size={20} />
+                    </div>
+                  )}
                   <div>
                     {isLoggedIn ? (
                       <>

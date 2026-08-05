@@ -14,6 +14,8 @@ import OrderSuccessPage from "./pages/OrderSuccessPage";
 import AboutPage from "./pages/AboutPage";
 import MyOrders from "./pages/MyOrders";
 import OrderTracking from "./pages/OrderTracking";
+import CustomerProfile from "./pages/CustomerProfile";
+import PublicProfile from "./pages/PublicProfile";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
@@ -105,6 +107,15 @@ export default function App() {
                   </RoleProtectedRoute>
                 }
               />
+              <Route
+                path="/profile"
+                element={
+                  <RoleProtectedRoute roles={["user"]} redirectTo="/seller">
+                    <CustomerProfile />
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route path="/profile/:id" element={<PublicProfile />} />
               <Route path="/order-success" element={<OrderSuccessPage />} />
               <Route path="/about" element={<AboutPage />} />
 

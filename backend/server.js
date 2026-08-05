@@ -17,6 +17,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const sellerRoutes = require('./routes/sellerRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const userRoutes = require('./routes/userRoutes');
 const { PRODUCT_CATEGORIES } = require('./config/categories');
 
 // Initialize Express app
@@ -33,6 +34,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/seller', sellerRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/users', userRoutes);
 
 // Canonical category list used by the storefront and seller product form
 app.get('/api/categories', (req, res) => {

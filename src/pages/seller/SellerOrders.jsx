@@ -7,6 +7,8 @@ import { fetchSellerOrders, updateItemStatus } from '../../services/api'
 import { img, placeholderImg, formatPrice } from '../../utils/helpers'
 import { useToast } from '../../context/ToastContext'
 import { useAuth } from '../../context/AuthContext'
+import { Link } from 'react-router-dom'
+import Avatar from '../../components/Avatar'
 
 // Sellers drive their own item through the full lifecycle, including
 // cancelling an item (e.g. when it is out of stock or can't be fulfilled).
@@ -52,8 +54,40 @@ const formatDate = (iso) => {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-const customerInitials = (address) =>
-  ((address?.fullName || '?').split(' ').filter(Boolean).slice(0, 2).map((w) => w.charAt(0)).join('') || '?').toUpperCase()
+// Customer card helpers — prefer the live profile (`customer`) attached by the
+// backend, falling back to the order's shipping snapshot.
+const customerOf = (order) => {
+  const name = order.customer?.name || order.shippingAddress?.fullName || '—'
+  const id = order.customer?._id || null
+  const avatar = order.customer?.avatar || ''
+  return { name, id, avatar }
+}
+
+function CustomerBadge({ order }) {
+  const { name, id, avatar } = customerOf(order)
+  return (
+    <div className="flex items-center gap-2.5">
+      <Avatar name={name} avatar={avatar} size={36} variant="light" />
+      <div className="min-w-0">
+        {id ? (
+          <Link
+            to={`/profile/${id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="font-medium text-text-primary line-clamp-1 hover:text-primary hover:underline transition-colors"
+          >
+            {name}
+          </Link>
+        ) : (
+          <p className="font-medium text-text-primary line-clamp-1">{name}</p>
+        )}
+        <p className="text-xs text-text-muted flex items-center gap-1 mt-0.5">
+          <MapPin size={11} className="flex-shrink-0" />
+          <span className="line-clamp-1">{order.shippingAddress?.city || '—'}</span>
+        </p>
+      </div>
+    </div>
+  )
+}
 
 function StatCard({ icon: Icon, label, value, accent }) {
   return (
@@ -149,11 +183,24 @@ function OrderDetailModal({ order, sellerId, onClose, onItemStatus, updating }) 
             <div className="border border-border-col rounded-lg p-4">
               <h3 className="font-semibold text-sm text-text-primary mb-3">Customer</h3>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary-light text-primary flex items-center justify-center font-bold text-sm flex-shrink-0">
-                  {customerInitials(order.shippingAddress)}
-                </div>
+                <Avatar
+                  name={customerOf(order).name}
+                  avatar={customerOf(order).avatar}
+                  size={40}
+                  variant="light"
+                />
                 <div className="min-w-0 text-sm text-text-secondary">
-                  <p className="font-semibold text-text-primary truncate">{order.shippingAddress?.fullName || '—'}</p>
+                  {customerOf(order).id ? (
+                    <Link
+                      to={`/profile/${customerOf(order).id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="font-semibold text-text-primary truncate block hover:text-primary hover:underline transition-colors"
+                    >
+                      {customerOf(order).name}
+                    </Link>
+                  ) : (
+                    <p className="font-semibold text-text-primary truncate">{customerOf(order).name}</p>
+                  )}
                   {order.shippingAddress?.email && (
                     <p className="text-xs text-text-muted truncate">{order.shippingAddress.email}</p>
                   )}
@@ -629,20 +676,7 @@ export default function SellerOrders() {
                           )}
                           {idx === 0 && (
                             <td rowSpan={own.length} className={`align-top px-4 py-3.5 w-52 border-b border-border-col ${idx === 0 ? 'border-t border-border-col' : ''}`}>
-                              <div className="flex items-center gap-2.5">
-                                <div className="w-9 h-9 rounded-full bg-primary-light text-primary flex items-center justify-center text-xs font-bold flex-shrink-0">
-                                  {customerInitials(order.shippingAddress)}
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="font-medium text-text-primary line-clamp-1">
-                                    {order.shippingAddress?.fullName || '—'}
-                                  </p>
-                                  <p className="text-xs text-text-muted flex items-center gap-1 mt-0.5">
-                                    <MapPin size={11} className="flex-shrink-0" />
-                                    <span className="line-clamp-1">{order.shippingAddress?.city || '—'}</span>
-                                  </p>
-                                </div>
-                              </div>
+                              <CustomerBadge order={order} />
                             </td>
                           )}
                           <td className="px-4 py-3.5 border-b border-border-col">
@@ -700,18 +734,7 @@ export default function SellerOrders() {
                   </div>
 
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-full bg-primary-light text-primary flex items-center justify-center text-xs font-bold flex-shrink-0">
-                      {customerInitials(order.shippingAddress)}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-text-primary line-clamp-1">
-                        {order.shippingAddress?.fullName || '—'}
-                      </p>
-                      <p className="text-xs text-text-muted flex items-center gap-1">
-                        <MapPin size={11} className="flex-shrink-0" />
-                        <span className="line-clamp-1">{order.shippingAddress?.city || '—'}</span>
-                      </p>
-                    </div>
+                    <CustomerBadge order={order} />
                   </div>
 
                   {own.map((item) => (
