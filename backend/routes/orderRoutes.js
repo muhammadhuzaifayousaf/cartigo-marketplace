@@ -11,8 +11,9 @@ const {
   getOrderById,
   updateOrderStatus,
   cancelOrder,
+  deleteOrder,
 } = require('../controllers/orderController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
 // POST /api/orders — Create a new order (requires JWT)
 router.post('/', protect, createOrder);
@@ -29,5 +30,8 @@ router.put('/:id/cancel', protect, cancelOrder);
 
 // GET /api/orders/:id — Single order (owner or admin)
 router.get('/:id', protect, getOrderById);
+
+// DELETE /api/orders/:id — Delete an order (admin); reverses delivery effects
+router.delete('/:id', protect, authorize('admin'), deleteOrder);
 
 module.exports = router;

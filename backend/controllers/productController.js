@@ -3,6 +3,20 @@
  * Handles all product-related API requests
  */
 const { Product } = require('../models/Product');
+const { getSoldMap, soldForProduct } = require('../utils/productSync');
+
+/**
+ * Real-time "sold" counts and available stock are derived straight from the
+ * Order collection so they always reflect the actual delivered, non-cancelled
+ * orders — even if orders were added, cancelled, or deleted outside this app.
+ *   sold  = delivered qty
+ *   stock = originalStock - sold (floored at 0)
+ */
+const withLiveCounts = (doc, sold) => ({
+  ...doc,
+  orders: sold,
+  stock: Math.max(0, (doc.originalStock || 0) - sold),
+});
 
 /**
  * @desc    Get all approved (verified) products
@@ -12,10 +26,15 @@ const { Product } = require('../models/Product');
 const getProducts = async (req, res) => {
   try {
     const products = await Product.find({ verified: true }).sort({ createdAt: -1 });
+    const soldMap = await getSoldMap();
+    const data = products.map((p) => {
+      const doc = p.toObject();
+      return withLiveCounts(doc, soldMap.get(doc._id.toString()) || 0);
+    });
     res.status(200).json({
       success: true,
-      count: products.length,
-      data: products,
+      count: data.length,
+      data,
     });
   } catch (error) {
     console.error(`Error fetching products: ${error.message}`);
@@ -43,9 +62,12 @@ const getProductById = async (req, res) => {
       });
     }
 
+    const sold = await soldForProduct(product._id);
+    const productData = withLiveCounts(product.toObject(), sold);
+
     res.status(200).json({
       success: true,
-      data: product,
+      data: productData,
     });
   } catch (error) {
     // Handle invalid MongoDB ObjectId format

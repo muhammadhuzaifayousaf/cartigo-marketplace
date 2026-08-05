@@ -4,6 +4,7 @@
  */
 const { Product } = require('../models/Product');
 const Review = require('../models/Review');
+const { soldForProduct } = require('../utils/productSync');
 const { cloudinary, isCloudinaryConfigured } = require('../config/cloudinary');
 const { PRODUCT_CATEGORIES, isProductCategory } = require('../config/categories');
 
@@ -96,6 +97,7 @@ const createMyProduct = async (req, res) => {
     ...fields,
     price,
     stock: Number(fields.stock) || 0,
+    originalStock: Number(fields.stock) || 0,
     image: images[0] || '',
     images,
     seller: req.user._id,
@@ -136,7 +138,13 @@ const updateMyProduct = async (req, res) => {
   const newImages = extractImageUrls(req.files);
 
   if (fields.price !== undefined) fields.price = Number(fields.price);
-  if (fields.stock !== undefined) fields.stock = Number(fields.stock) || 0;
+  if (fields.stock !== undefined) {
+    fields.stock = Number(fields.stock) || 0;
+    // The seller sets the CURRENT available count, so re-derive the baseline
+    // to keep stock = originalStock - sold accurate (sold = delivered qty).
+    const sold = await soldForProduct(product._id);
+    fields.originalStock = fields.stock + sold;
+  }
 
   // `existingImages` is the list of image URLs the seller chose to KEEP.
   // Its presence signals that images may have been removed (or new ones added).

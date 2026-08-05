@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -9,9 +10,29 @@ import SavedProducts from "../components/SavedProducts";
 import PromoBanner from "../components/PromoBanner";
 
 import { useCart } from "../context/CartContext";
+import { fetchProducts } from "../services/api";
 
 export default function CartPage() {
   const { items, clearCart, totalItems } = useCart();
+  const [stockMap, setStockMap] = useState({});
+
+  // Fetch live stock so the + button respects how many are actually available.
+  useEffect(() => {
+    let cancelled = false;
+    fetchProducts()
+      .then((products) => {
+        if (cancelled) return;
+        const map = {};
+        products.forEach((p) => {
+          map[p.id] = p.stock;
+        });
+        setStockMap(map);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <>
@@ -40,7 +61,7 @@ export default function CartPage() {
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 {items.map((item) => (
-                  <CartItem key={item.id} item={item} />
+                  <CartItem key={item.id} item={item} stock={stockMap[item.id]} />
                 ))}
 
                 <div className="flex justify-between mt-4">

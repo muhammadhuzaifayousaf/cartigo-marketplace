@@ -1,8 +1,25 @@
 import { useCart } from "../context/CartContext";
+import { useToast } from "../context/ToastContext";
 import { formatPrice } from "../utils/helpers";
 
-export default function CartItem({ item }) {
+export default function CartItem({ item, stock }) {
   const { updateQty, removeItem } = useCart();
+  const showToast = useToast();
+
+  const hasStock = typeof stock === "number" && stock >= 0;
+
+  const handleIncrement = () => {
+    if (hasStock && item.qty + 1 > stock) {
+      showToast(
+        stock === 0
+          ? "Out of stock"
+          : `Only ${stock} ${stock === 1 ? "item" : "items"} left in stock`,
+        { type: "error", duration: 3000 }
+      );
+      return;
+    }
+    updateQty(item.id, item.qty + 1);
+  };
 
   return (
     <div className="flex flex-col md:flex-row justify-between border border-border-col rounded-lg p-4 mb-4 bg-white">
@@ -18,6 +35,14 @@ export default function CartItem({ item }) {
             Size: {item.size || "N/A"}, Color: {item.color || "N/A"}, Material: {item.material || "N/A"}
           </p>
           <p className="text-text-muted text-sm">Seller: {item.seller || "N/A"}</p>
+          {hasStock && stock > 0 && stock <= 5 && (
+            <p className="text-xs font-medium text-warning mt-1">
+              Only {stock} left in stock
+            </p>
+          )}
+          {hasStock && stock === 0 && (
+            <p className="text-xs font-medium text-danger mt-1">Out of stock</p>
+          )}
           <div className="mt-3 flex gap-2">
             <button
               onClick={() => removeItem(item.id)}
@@ -41,7 +66,7 @@ export default function CartItem({ item }) {
           </button>
           <span className="w-8 text-center font-medium text-text-primary">{item.qty}</span>
           <button
-            onClick={() => updateQty(item.id, item.qty + 1)}
+            onClick={handleIncrement}
             className="w-8 h-8 border border-border-col rounded flex items-center justify-center text-lg font-bold hover:bg-bg-light transition-colors"
           >
             +

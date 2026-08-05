@@ -43,6 +43,14 @@ const productSchema = new mongoose.Schema(
       required: [true, 'Stock quantity is required'],
       min: [0, 'Stock cannot be negative'],
     },
+    // Baseline inventory set when the product is created/seeded or when the
+    // seller resets stock. Live stock is computed as `originalStock` minus the
+    // quantity currently in Delivered orders, so it self-corrects just like
+    // the sold count whenever orders are delivered, cancelled, or deleted.
+    originalStock: {
+      type: Number,
+      default: 0,
+    },
     brand: {
       type: String,
       default: '',
@@ -460,7 +468,8 @@ const seedDatabase = async () => {
   try {
     const count = await Product.countDocuments();
     if (count === 0) {
-      await Product.insertMany(seedProducts);
+      const docs = seedProducts.map((p) => ({ ...p, originalStock: p.stock }));
+      await Product.insertMany(docs);
       console.log(`Seeded ${seedProducts.length} products into the database`);
     } else {
       console.log(`Products collection already has ${count} documents — skipping seed`);

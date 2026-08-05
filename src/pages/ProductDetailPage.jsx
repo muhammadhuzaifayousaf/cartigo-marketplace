@@ -59,7 +59,7 @@ function ErrorState({ message, onRetry }) {
 export default function ProductDetailPage() {
   const { id }     = useParams()
   const navigate   = useNavigate()
-  const { addItem } = useCart()
+  const { items: cartItems, addItem } = useCart()
   const showToast = useToast()
   const { isSeller } = useAuth()
 
@@ -233,9 +233,16 @@ export default function ProductDetailPage() {
           {/* Product Info */}
           <div className="bg-white rounded border border-border-col p-5">
             <div className="flex flex-wrap items-center gap-2 mb-3">
-              <span className={`inline-flex items-center gap-1 text-sm font-medium ${product.stock > 0 ? 'text-success' : 'text-danger'}`}>
-                {product.stock > 0 ? '✓ In stock' : '✕ Out of stock'}
-              </span>
+              {product.stock > 0 ? (
+                <>
+                  <span className="inline-flex items-center gap-1 text-sm font-medium text-success">✓ In stock</span>
+                  {product.stock <= 5 && (
+                    <span className="text-xs font-medium text-warning">Only {product.stock} left in stock</span>
+                  )}
+                </>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-sm font-medium text-danger">✕ Out of stock</span>
+              )}
               <span className="text-sm text-text-muted">•</span>
               <span className="text-sm text-text-muted">Category: {product.category}</span>
             </div>
@@ -312,6 +319,21 @@ export default function ProductDetailPage() {
                 onClick={() => {
                   if (isSeller) {
                     showToast('Sellers cannot buy products.', { type: 'info', duration: 3000 })
+                    return
+                  }
+
+                  if (product.stock <= 0) {
+                    showToast('Out of stock', { type: 'error', duration: 3000 })
+                    return
+                  }
+
+                  const inCartQty = cartItems.find((item) => item.id === product.id)?.qty || 0
+                  const available = Math.max(0, product.stock - inCartQty)
+                  if (qty > available) {
+                    showToast(
+                      `Only ${product.stock} ${product.stock === 1 ? 'item' : 'items'} left in stock`,
+                      { type: 'error', duration: 3000 }
+                    )
                     return
                   }
 

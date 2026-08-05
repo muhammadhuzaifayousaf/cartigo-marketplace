@@ -5,6 +5,7 @@
  */
 const Order = require('../models/Order');
 const { Product } = require('../models/Product');
+const { syncProductSoldState } = require('../utils/productSync');
 
 /**
  * Compute order totals using the same logic as the frontend
@@ -118,14 +119,17 @@ const getSellerOrders = async (req, res) => {
  * longer exist are skipped. Called exactly once per order (guarded by
  * deliveryProcessed).
  */
-const processDeliveredOrder = async (order) => {
+/**
+ * Recompute stock/sold for every product on the order from the current
+ * Delivered orders in the database. This runs after the order's new status is
+ * persisted, so delivered orders count and cancelled/deleted orders don't.
+ * Products that no longer exist are skipped.
+ */
+const resyncOrderProducts = async (order) => {
   for (const item of order.items) {
     const product = await Product.findById(item.product);
     if (!product) continue;
-
-    product.stock = Math.max(0, (product.stock || 0) - item.qty);
-    product.orders = (product.orders || 0) + item.qty;
-    await product.save();
+    await syncProductSoldState(product);
   }
 };
 
@@ -162,14 +166,19 @@ const updateOrderStatus = async (req, res) => {
     });
   }
 
-  order.status = status;
+  const wasDelivered = order.status === 'Delivered';
+  const wasProcessed = order.deliveryProcessed === true;
 
-  if (status === 'Delivered' && !order.deliveryProcessed) {
-    await processDeliveredOrder(order);
-    order.deliveryProcessed = true;
-  }
+  order.status = status;
+  // Track delivery so the flag stays meaningful for direct reversals/deletes.
+  if (status === 'Delivered') order.deliveryProcessed = true;
+  else if (wasDelivered && wasProcessed) order.deliveryProcessed = false;
 
   await order.save();
+
+  // Recompute from the persisted order set — sold/stock now reflect this
+  // status change (delivery counts it, cancellation/deletion drops it).
+  await resyncOrderProducts(order);
 
   res.status(200).json({
     success: true,
@@ -212,6 +221,36 @@ const cancelOrder = async (req, res) => {
   });
 };
 
+/**
+ * @desc    Delete an order (admin only). Reverses any applied delivery
+ *          effects first so product stock/sold counts stay accurate.
+ * @route   DELETE /api/orders/:id
+ * @access  Private (admin)
+ */
+const deleteOrder = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    return res.status(404).json({ success: false, message: 'Order not found' });
+  }
+
+  const items = order.items;
+  await Order.deleteOne({ _id: order._id });
+
+  // Removing the order drops its delivered quantity, so stock/sold are
+  // recomputed for its products.
+  for (const item of items) {
+    const product = await Product.findById(item.product);
+    if (!product) continue;
+    await syncProductSoldState(product);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Order deleted successfully',
+  });
+};
+
 module.exports = {
   createOrder,
   getMyOrders,
@@ -219,4 +258,5 @@ module.exports = {
   getSellerOrders,
   updateOrderStatus,
   cancelOrder,
+  deleteOrder,
 };
