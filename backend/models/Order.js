@@ -8,9 +8,12 @@ const mongoose = require('mongoose');
  * Order Schema
  * - user: reference to the User who placed the order
  * - items: snapshot of each purchased product (name, price, qty, image, seller)
+ *          with its OWN independent status lifecycle (multi-seller orders).
+ *          Each item tracks its own status history + tracking number.
  * - shippingAddress: filled from the checkout form
  * - totals: computed server-side (subtotal, discount, tax, total)
- * - status: lifecycle from Pending → Confirmed → In Transit → Arrived → Delivered
+ * - There is NO global order status. An overall status is derived from the
+ *   item statuses by the controllers (computeOverallStatus).
  */
 const orderSchema = new mongoose.Schema(
   {
@@ -38,6 +41,20 @@ const orderSchema = new mongoose.Schema(
           default: null,
         },
         sellerName: { type: String, default: 'ShopHub' },
+        // Per-item lifecycle — each seller manages only their own items.
+        status: {
+          type: String,
+          enum: ['Pending', 'Confirmed', 'In Transit', 'Arrived', 'Delivered', 'Cancelled'],
+          default: 'Pending',
+        },
+        // Append-only history of every status this item has been in.
+        statusHistory: [
+          {
+            status: { type: String, required: true },
+            date: { type: Date, default: Date.now },
+          },
+        ],
+        trackingNumber: { type: String, default: '' },
       },
     ],
     shippingAddress: {
@@ -56,17 +73,9 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: 'Cash on Delivery',
     },
-    status: {
+    paymentStatus: {
       type: String,
-      enum: ['Pending', 'Confirmed', 'In Transit', 'Arrived', 'Delivered', 'Cancelled'],
       default: 'Pending',
-    },
-    // True once the delivered order has affected product stock/orders so the
-    // effects are applied exactly once (setting status back to Delivered won't
-    // decrement stock or bump the sold count again).
-    deliveryProcessed: {
-      type: Boolean,
-      default: false,
     },
   },
   {

@@ -91,19 +91,23 @@ export default function SellerDashboard() {
     )
   }
 
-  // Revenue = sum of the seller's item lines across DELIVERED orders only.
-  const revenue = orders
-    .filter((order) => order.status === 'Delivered')
-    .reduce(
-      (sum, order) =>
-        sum +
-        order.items
-          .filter((item) => item.seller === user?._id)
-          .reduce((s, item) => s + item.price * item.qty, 0),
-      0
-    )
-  const pendingOrders = orders.filter((o) => o.status === 'Pending').length
-  const completedOrders = orders.filter((o) => o.status === 'Delivered').length
+  // Item-level stats: only the seller's own item lines count, using each
+  // item's own status (an order may mix sellers and delivered/pending items).
+  const revenue = orders.reduce(
+    (sum, order) =>
+      sum +
+      order.items
+        .filter((item) => item.seller === user?._id && item.status === 'Delivered')
+        .reduce((s, item) => s + item.price * item.qty, 0),
+    0
+  )
+  const sellerItemsByOrder = (order) =>
+    (order.items || []).filter((item) => item.seller === user?._id)
+  const pendingOrders = orders.filter((o) => sellerItemsByOrder(o).some((i) => i.status === 'Pending')).length
+  const completedOrders = orders.filter((o) => {
+    const mine = sellerItemsByOrder(o)
+    return mine.length > 0 && mine.every((i) => i.status === 'Delivered')
+  }).length
 
   return (
     <div className="space-y-5">
@@ -180,7 +184,7 @@ export default function SellerDashboard() {
                       Order <span className="font-mono text-xs">{order._id.slice(-8)}</span>
                     </p>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-light text-primary whitespace-nowrap">
-                      {order.status}
+                      {order.overallStatus}
                     </span>
                   </div>
                   <p className="text-xs text-text-muted mt-1">

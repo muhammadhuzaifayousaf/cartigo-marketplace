@@ -102,24 +102,39 @@ export const fetchOrderById = async (id) => {
 };
 
 /**
- * Update an order's tracking status (seller or admin).
+ * Update a single order item's tracking status (the seller who owns that item,
+ * or admin). Each item has its own independent status.
  * @param {string} id - Order ID
+ * @param {string} itemId - Order item ID
  * @param {string} status - Pending | Confirmed | In Transit | Arrived | Delivered | Cancelled
- * @returns {Promise<Object>} Updated order document
+ * @param {string} [trackingNumber] - Optional tracking number
+ * @returns {Promise<Object>} Updated order document (with computed overallStatus)
  */
-export const updateOrderStatus = async (id, status) => {
-  const response = await api.put(`/orders/${id}/status`, { status });
+export const updateItemStatus = async (id, itemId, status, trackingNumber) => {
+  const response = await api.put(`/orders/${id}/items/${itemId}/status`, { status, trackingNumber });
   return response.data.data;
 };
 
 /**
  * Cancel the authenticated customer's own order.
- * Only allowed while the order is still "Pending" (before the seller confirms it).
+ * Only allowed while every item is still "Pending" (before any seller confirms).
  * @param {string} id - Order ID
  * @returns {Promise<Object>} Updated order document
  */
 export const cancelOrder = async (id) => {
   const response = await api.put(`/orders/${id}/cancel`);
+  return response.data.data;
+};
+
+/**
+ * Cancel a single item on the customer's own order.
+ * Only allowed while that item is still "Pending".
+ * @param {string} orderId - Order ID
+ * @param {string} itemId - Order item ID
+ * @returns {Promise<Object>} Updated order document
+ */
+export const cancelItem = async (orderId, itemId) => {
+  const response = await api.patch(`/orders/${orderId}/items/${itemId}/cancel`);
   return response.data.data;
 };
 

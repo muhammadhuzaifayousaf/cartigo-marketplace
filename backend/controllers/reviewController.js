@@ -133,10 +133,13 @@ const getMyReview = async (req, res) => {
   try {
     const productId = req.params.productId;
 
+    // Eligible only if the user has a DELIVERED ITEM for this product
+    // (item-level status — an order may only be partially delivered).
+    // $elemMatch requires product + status to match on the SAME item, so a
+    // cancelled item for this product never grants eligibility.
     const deliveredOrder = await Order.findOne({
       user: req.user._id,
-      'items.product': productId,
-      status: 'Delivered',
+      items: { $elemMatch: { product: productId, status: 'Delivered' } },
     });
 
     const existing = await Review.findOne({ user: req.user._id, product: productId });
@@ -227,11 +230,12 @@ const createReview = async (req, res) => {
     return res.status(404).json({ success: false, message: 'Product not found' });
   }
 
-  // Must have purchased the product and received it (order delivered).
+  // Must have purchased the product and received it (that order item delivered).
+  // $elemMatch ties the product + Delivered condition to the SAME order item,
+  // so a cancelled line for this product cannot grant review eligibility.
   const deliveredOrder = await Order.findOne({
     user: req.user._id,
-    'items.product': productId,
-    status: 'Delivered',
+    items: { $elemMatch: { product: productId, status: 'Delivered' } },
   });
   if (!deliveredOrder) {
     return res.status(400).json({
@@ -251,7 +255,7 @@ const createReview = async (req, res) => {
 
   // Identify the seller from the delivered order item.
   const item = deliveredOrder.items.find(
-    (i) => i.product.toString() === productId.toString()
+    (i) => i.product.toString() === productId.toString() && i.status === 'Delivered'
   );
   const seller = item?.seller || product.seller || null;
 

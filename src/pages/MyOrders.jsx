@@ -109,16 +109,16 @@ export default function MyOrders() {
                     <div className="flex items-center gap-2">
                       <span
                         className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                          order.status === 'Delivered'
+                          order.overallStatus === 'Delivered' || order.overallStatus === 'Partially Delivered'
                             ? 'bg-green-100 text-success'
-                            : order.status === 'Cancelled'
+                            : order.overallStatus === 'Cancelled' || order.overallStatus === 'Partially Cancelled'
                               ? 'bg-red-100 text-danger'
                               : 'bg-primary-light text-primary'
                         }`}
                       >
-                        {order.status}
+                        {order.overallStatus}
                       </span>
-                      {order.status === 'Pending' && (
+                      {order.items.every((i) => i.status === 'Pending') && (
                         confirming === order._id ? (
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs text-danger font-medium">Cancel?</span>
@@ -171,7 +171,16 @@ export default function MyOrders() {
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <span className="font-bold text-text-primary">{formatPrice(order.total)}</span>
+                      <div className="text-right">
+                        <span className="font-bold text-text-primary">
+                          {order.cancelledAmount > 0 ? formatPrice(order.finalTotal) : formatPrice(order.total)}
+                        </span>
+                        {order.cancelledAmount > 0 && (
+                          <p className="text-xs text-danger">
+                            −{formatPrice(order.cancelledAmount)} cancelled
+                          </p>
+                        )}
+                      </div>
                       <ChevronRight size={16} className="text-text-muted" />
                     </div>
                   </div>

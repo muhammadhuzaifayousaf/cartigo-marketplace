@@ -9,8 +9,9 @@ const {
   createOrder,
   getMyOrders,
   getOrderById,
-  updateOrderStatus,
+  updateItemStatus,
   cancelOrder,
+  cancelItem,
   deleteOrder,
 } = require('../controllers/orderController');
 const { protect, authorize } = require('../middleware/authMiddleware');
@@ -21,9 +22,12 @@ router.post('/', protect, createOrder);
 // GET /api/orders/my — Authenticated customer's order history
 router.get('/my', protect, getMyOrders);
 
-// PUT /api/orders/:id/status — Update order tracking status
-// (seller owning an item on the order, or admin)
-router.put('/:id/status', protect, updateOrderStatus);
+// PUT /api/orders/:id/items/:itemId/status — Update one item's tracking status
+// (the seller who owns that item, or admin)
+router.put('/:id/items/:itemId/status', protect, updateItemStatus);
+
+// PATCH /api/orders/:id/items/:itemId/cancel — Customer cancels one pending item
+router.patch('/:id/items/:itemId/cancel', protect, cancelItem);
 
 // PUT /api/orders/:id/cancel — Customer cancels their pending order
 router.put('/:id/cancel', protect, cancelOrder);
