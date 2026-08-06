@@ -4,7 +4,7 @@ import { fetchAdminProducts, updateProductVerification } from '../../services/ap
 import { img, formatPrice } from '../../utils/helpers'
 import { useToast } from '../../context/ToastContext'
 import { useAuth } from '../../context/AuthContext'
-import { Navigate } from 'react-router-dom'
+import { Navigate, Link } from 'react-router-dom'
 
 // Resolve a product's approval status. Older docs may only have `verified`.
 const getStatus = (p) => p.status || (p.verified ? 'approved' : 'pending')
@@ -121,7 +121,17 @@ function ProductDetailModal({ product, onClose, onVerify, updating }) {
           <div className="md:col-span-3">
             <h3 className="text-lg font-bold text-text-primary leading-snug mb-2">{product.name}</h3>
             <p className="text-sm text-text-muted mb-3">
-              by {sellerName}
+              by{' '}
+              {product.seller ? (
+                <Link
+                  to={`/profile/${product.seller._id}`}
+                  className="text-text-secondary hover:text-primary transition-colors"
+                >
+                  {sellerName}
+                </Link>
+              ) : (
+                sellerName
+              )}
               {product.seller?.email && <span className="text-text-muted"> · {product.seller.email}</span>}
             </p>
 
@@ -390,7 +400,18 @@ export default function AdminApprovals() {
                         </button>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-text-secondary">{p.sellerName || p.seller?.name || '—'}</td>
+                    <td className="px-4 py-3">
+                      {p.seller ? (
+                        <Link
+                          to={`/profile/${p.seller._id}`}
+                          className="text-text-secondary hover:text-primary transition-colors"
+                        >
+                          {p.sellerName || p.seller?.name || '—'}
+                        </Link>
+                      ) : (
+                        <span className="text-text-secondary">{p.sellerName || p.seller?.name || '—'}</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-text-primary font-medium">{formatPrice(p.price)}</td>
                     <td className="px-4 py-3 text-text-secondary">{p.category}</td>
                     <td className="px-4 py-3">
@@ -422,7 +443,19 @@ export default function AdminApprovals() {
                   >
                     {p.name}
                   </button>
-                  <p className="text-xs text-text-muted mt-0.5">by {p.sellerName || p.seller?.name || '—'}</p>
+                  <p className="text-xs text-text-muted mt-0.5">
+                    by{' '}
+                    {p.seller ? (
+                      <Link
+                        to={`/profile/${p.seller._id}`}
+                        className="text-text-secondary hover:text-primary transition-colors"
+                      >
+                        {p.sellerName || p.seller?.name || '—'}
+                      </Link>
+                    ) : (
+                      <span className="text-text-secondary">{p.sellerName || p.seller?.name || '—'}</span>
+                    )}
+                  </p>
                   <div className="mt-1">
                     <StatusBadge product={p} />
                   </div>

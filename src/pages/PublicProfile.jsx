@@ -5,8 +5,10 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import Avatar from '../components/Avatar'
 import StarRating from '../components/StarRating'
-import { fetchPublicProfile } from '../services/api'
+import ProductCard from '../components/ProductCard'
+import { fetchPublicProfile, fetchSellerPublicProducts } from '../services/api'
 import { useAuth } from '../context/AuthContext'
+import { PRODUCT_CATEGORIES } from '../data/categories'
 
 const formatJoined = (iso) => {
   if (!iso) return ''
@@ -22,6 +24,9 @@ export default function PublicProfile() {
   const { id } = useParams()
   const { user, isLoggedIn, isSeller } = useAuth()
   const [profile, setProfile] = useState(null)
+  const [products, setProducts] = useState([])
+  const [productsLoading, setProductsLoading] = useState(false)
+  const [categoryFilter, setCategoryFilter] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -41,7 +46,27 @@ export default function PublicProfile() {
     load()
   }, [id])
 
+  // Seller/admin profiles also list their approved products.
+  useEffect(() => {
+    if (!profile || (profile.role !== 'seller' && profile.role !== 'admin')) {
+      setProducts([])
+      return
+    }
+    let mounted = true
+    setProductsLoading(true)
+    fetchSellerPublicProducts(id)
+      .then((data) => mounted && setProducts(data))
+      .catch(() => mounted && setProducts([]))
+      .finally(() => mounted && setProductsLoading(false))
+    return () => { mounted = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, profile?.role])
+
   const isOwn = isLoggedIn && user?._id === id
+
+  const visibleProducts = categoryFilter
+    ? products.filter((p) => p.category === categoryFilter)
+    : products
 
   return (
     <div className="min-h-screen bg-bg-light">
@@ -66,7 +91,8 @@ export default function PublicProfile() {
         )}
 
         {profile && !loading && (
-          <div className="bg-white rounded-lg border border-border-col p-5 sm:p-6">
+          <>
+            <div className="bg-white rounded-lg border border-border-col p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-4 min-w-0">
                 <div className="flex-shrink-0">
@@ -165,7 +191,51 @@ export default function PublicProfile() {
                   </p>
                 </div>
               )}
-          </div>
+            </div>
+
+            {/* Seller's approved products */}
+            {(profile.role === 'seller' || profile.role === 'admin') && (
+              <div className="bg-white rounded-lg border border-border-col p-5 sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <h2 className="font-semibold text-text-primary">Products by {profile.name}</h2>
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="px-3 py-2 text-sm border border-border-col rounded-lg bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-text-primary"
+                  >
+                    <option value="">All Categories</option>
+                    {PRODUCT_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                {productsLoading ? (
+                  <div className="flex items-center justify-center py-12 text-text-muted">
+                    <Loader2 size={30} className="animate-spin text-primary" />
+                  </div>
+                ) : visibleProducts.length === 0 ? (
+                  <p className="text-sm text-text-muted py-6 text-center">
+                    {categoryFilter
+                      ? `No products in "${categoryFilter}" yet.`
+                      : 'No products available yet.'}
+                  </p>
+                ) : (
+                  <>
+                    {categoryFilter && (
+                      <p className="text-xs text-text-muted mb-3">
+                        {visibleProducts.length} product{visibleProducts.length !== 1 && 's'} in {categoryFilter}
+                      </p>
+                    )}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {visibleProducts.map((p) => (
+                        <ProductCard key={p.id} product={p} />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </>
         )}
       </main>
       <Footer />

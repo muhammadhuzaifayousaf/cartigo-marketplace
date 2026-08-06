@@ -2,6 +2,7 @@
  * Product Controller
  * Handles all product-related API requests
  */
+const mongoose = require('mongoose');
 const { Product } = require('../models/Product');
 const { getSoldMap, soldForProduct } = require('../utils/productSync');
 
@@ -20,12 +21,26 @@ const withLiveCounts = (doc, sold) => ({
 
 /**
  * @desc    Get all approved (verified) products
- * @route   GET /api/products
+ * @route   GET /api/products?seller=<sellerId>
  * @access  Public
+ * Optional ?seller filter returns only that seller's approved products
+ * (used by public seller profiles).
  */
 const getProducts = async (req, res) => {
   try {
-    const products = await Product.find({ verified: true }).sort({ createdAt: -1 });
+    const filter = { verified: true };
+
+    if (req.query.seller) {
+      if (!mongoose.isValidObjectId(req.query.seller)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid seller id',
+        });
+      }
+      filter.seller = req.query.seller;
+    }
+
+    const products = await Product.find(filter).sort({ createdAt: -1 });
     const soldMap = await getSoldMap();
     const data = products.map((p) => {
       const doc = p.toObject();

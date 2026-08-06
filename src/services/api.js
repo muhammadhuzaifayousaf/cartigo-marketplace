@@ -43,6 +43,16 @@ export const fetchProducts = async () => {
 };
 
 /**
+ * Fetch a seller's approved products for their public profile.
+ * @param {string} sellerId - The seller's user ID
+ * @returns {Promise<Array>} Array of transformed product objects
+ */
+export const fetchSellerPublicProducts = async (sellerId) => {
+  const response = await api.get(`/products?seller=${sellerId}`);
+  return response.data.data.map(transformProduct);
+};
+
+/**
  * Fetch a single product by its ID from the backend.
  * @param {string} id - The MongoDB ObjectId of the product
  * @returns {Promise<Object>} Transformed product object
