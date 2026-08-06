@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
 import { formatPrice } from "../utils/helpers";
@@ -30,11 +31,28 @@ export default function CartItem({ item, stock }) {
           className="w-24 h-24 object-contain border border-border-col rounded"
         />
         <div>
-          <h3 className="font-semibold text-lg text-text-primary">{item.name}</h3>
+          <Link
+            to={`/products/${item.id}`}
+            className="font-semibold text-lg text-text-primary hover:text-primary transition-colors"
+          >
+            {item.name}
+          </Link>
           <p className="text-text-muted text-sm">
             Size: {item.size || "N/A"}, Color: {item.color || "N/A"}, Material: {item.material || "N/A"}
           </p>
-          <p className="text-text-muted text-sm">Seller: {item.seller || "N/A"}</p>
+          <p className="text-text-muted text-sm">
+            Seller:{" "}
+            {item.seller ? (
+              <Link
+                to={`/profile/${item.seller}`}
+                className="text-text-secondary hover:text-primary transition-colors"
+              >
+                {item.sellerName || "ShopHub"}
+              </Link>
+            ) : (
+              <span className="text-text-secondary">{item.sellerName || "ShopHub"}</span>
+            )}
+          </p>
           {hasStock && stock > 0 && stock <= 5 && (
             <p className="text-xs font-medium text-warning mt-1">
               Only {stock} left in stock

@@ -83,6 +83,20 @@ export const loginUser = async (credentials) => {
 };
 
 /**
+ * Change the authenticated user's own password.
+ * Requires the current password for verification. The JWT is attached
+ * automatically by the request interceptor.
+ * @param {string} currentPassword - The user's current password
+ * @param {string} newPassword - New password (min 8 characters)
+ * @param {string} confirmPassword - Must match newPassword
+ * @returns {Promise<Object>} { success, message }
+ */
+export const changePassword = async (currentPassword, newPassword, confirmPassword) => {
+  const response = await api.put('/auth/change-password', { currentPassword, newPassword, confirmPassword });
+  return response.data;
+};
+
+/**
  * Place a new order.
  * @param {Object} orderData - { items, shippingAddress }
  * @returns {Promise<Object>} The created order document

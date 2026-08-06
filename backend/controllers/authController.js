@@ -1,6 +1,6 @@
 /**
  * Auth Controller
- * Handles user registration and login.
+ * Handles user registration, login, and password changes.
  * Users register as either a customer ('user') or a 'seller'.
  */
 const User = require('../models/User');
@@ -129,4 +129,69 @@ const loginUser = async (req, res) => {
   });
 };
 
-module.exports = { registerUser, loginUser };
+/**
+ * @desc    Change the logged-in user's password
+ * @route   PUT /api/auth/change-password
+ * @access  Private (JWT required)
+ * Verifies the current password, then hashes and stores the new one.
+ * The existing pre('save') hook re-hashes the password with bcrypt.
+ */
+const changePassword = async (req, res) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body;
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please provide current password, new password and confirm password',
+    });
+  }
+
+  if (newPassword.length < 8) {
+    return res.status(400).json({
+      success: false,
+      message: 'Password must be at least 8 characters',
+    });
+  }
+
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({
+      success: false,
+      message: 'Passwords do not match.',
+    });
+  }
+
+  if (newPassword === currentPassword) {
+    return res.status(400).json({
+      success: false,
+      message: 'New password cannot be the same as current password.',
+    });
+  }
+
+  // protect middleware selects '-password', so fetch the full document
+  // to compare the stored bcrypt hash.
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Not authorized, user no longer exists',
+    });
+  }
+
+  const isMatch = await user.matchPassword(currentPassword);
+  if (!isMatch) {
+    return res.status(400).json({
+      success: false,
+      message: 'Current password is incorrect.',
+    });
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Password changed successfully.',
+  });
+};
+
+module.exports = { registerUser, loginUser, changePassword };

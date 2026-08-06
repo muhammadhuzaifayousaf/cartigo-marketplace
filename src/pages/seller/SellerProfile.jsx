@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { fetchSellerProducts, fetchMyProfile, updateMyProfile } from '../../services/api'
 import AvatarUpload from '../../components/AvatarUpload'
 import StarRating from '../../components/StarRating'
+import ChangePassword from '../../components/ChangePassword'
 import { useToast } from '../../context/ToastContext'
 
 /**
@@ -195,19 +196,21 @@ export default function SellerProfile() {
               <p className="text-xs text-text-muted mt-1 text-right">{description.length}/500</p>
             </div>
 
-            <div className="mt-5 flex justify-end">
-              <button
-                type="submit"
-                disabled={saving}
-                className="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {saving && <Loader2 size={14} className="animate-spin" />}
-                Save changes
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+              <div className="mt-5 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {saving && <Loader2 size={14} className="animate-spin" />}
+                  Save changes
+                </button>
+              </div>
+            </form>
+
+            <ChangePassword />
+          </div>
+        )}
     </div>
   )
 }

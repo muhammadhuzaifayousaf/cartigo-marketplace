@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import FormInput from '../components/FormInput'
 import AvatarUpload from '../components/AvatarUpload'
+import ChangePassword from '../components/ChangePassword'
 import { fetchMyProfile, updateMyProfile } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -200,6 +201,8 @@ export default function CustomerProfile() {
                 </button>
               </div>
             </form>
+
+            <ChangePassword />
           </div>
         )}
       </main>
