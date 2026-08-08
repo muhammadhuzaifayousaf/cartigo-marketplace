@@ -83,7 +83,7 @@ export default function SellerLayout() {
               to="/"
               className="hidden md:inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-primary transition-colors"
             >
-              <ArrowLeft size={16} /> Back to store
+              <ArrowLeft size={16} /> Back to shop
             </Link>
             <Avatar name={userName} avatar={user?.avatar} size={32} />
             <span className="hidden sm:block text-sm font-medium text-text-primary truncate max-w-[140px]">

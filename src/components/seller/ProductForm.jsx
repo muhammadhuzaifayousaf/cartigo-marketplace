@@ -32,6 +32,7 @@ export default function ProductForm({ initialValues = null, onSubmit, submitting
   const [files, setFiles] = useState([])
   const [removedExisting, setRemovedExisting] = useState([])
   const fileInputRef = useRef(null)
+  const dragIndexRef = useRef(null)
 
   // Existing images shown when editing — removable, and kept unless removed.
   const existingImages = initialValues?.images?.length
@@ -58,11 +59,13 @@ export default function ProductForm({ initialValues = null, onSubmit, submitting
 
     // Append new selections to the remaining capacity, deduping by
     // name+size+lastModified so picking the same file twice doesn't duplicate.
+    // Only the incoming files are limited by remaining room — the existing
+    // selection is never truncated (that caused the 4th pick to drop the 3rd).
     setFiles((prev) => {
       const existing = new Set(prev.map((f) => `${f.name}-${f.size}-${f.lastModified}`))
       const fresh = incoming.filter((f) => !existing.has(`${f.name}-${f.size}-${f.lastModified}`))
       const room = 5 - (keptExisting.length + prev.length)
-      return [...prev, ...fresh].slice(0, Math.max(room, 0))
+      return [...prev, ...fresh.slice(0, Math.max(room, 0))]
     })
 
     // Reset the input value so choosing the same file again still fires onChange.
@@ -71,6 +74,30 @@ export default function ProductForm({ initialValues = null, onSubmit, submitting
 
   const removeFile = (index) => {
     setFiles((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  // ── Drag-to-reorder the newly added images ──
+  const handleDragStart = (index) => (e) => {
+    dragIndexRef.current = index
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = (index) => (e) => {
+    e.preventDefault()
+    const from = dragIndexRef.current
+    dragIndexRef.current = null
+    if (from === null || from === index) return
+    setFiles((prev) => {
+      const next = [...prev]
+      const [moved] = next.splice(from, 1)
+      next.splice(from < index ? index - 1 : index, 0, moved)
+      return next
+    })
   }
 
   const removeExisting = (src) => {
@@ -281,12 +308,20 @@ export default function ProductForm({ initialValues = null, onSubmit, submitting
               </div>
             ))}
             {files.map((file, i) => (
-              <div key={`new-${i}`} className="relative w-24 h-24">
-                <img src={previewSrc(file)} alt={`New ${i + 1}`} className="w-full h-full object-contain border border-border-col rounded-lg bg-bg-light p-1" />
+              <div
+                key={`new-${i}`}
+                draggable
+                onDragStart={handleDragStart(i)}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop(i)}
+                title="Hold and drag to rearrange"
+                className="relative w-24 h-24 cursor-grab active:cursor-grabbing select-none"
+              >
+                <img src={previewSrc(file)} alt={`New ${i + 1}`} className="w-full h-full object-contain border border-border-col rounded-lg bg-bg-light p-1 pointer-events-none" />
                 <button
                   type="button"
                   onClick={() => removeFile(i)}
-                  className="absolute -top-2 -right-2 bg-danger text-white rounded-full p-0.5 shadow"
+                  className="absolute -top-2 -right-2 bg-danger text-white rounded-full p-0.5 shadow pointer-events-auto"
                   aria-label="Remove image"
                 >
                   <X size={14} />
@@ -294,6 +329,9 @@ export default function ProductForm({ initialValues = null, onSubmit, submitting
               </div>
             ))}
           </div>
+        )}
+        {files.length > 1 && (
+          <p className="text-xs text-text-muted mt-2">Hold and drag images to rearrange the order.</p>
         )}
         {isEdit && (
           <p className="text-xs text-text-muted mt-2">Removed images are deleted from the store on save.</p>

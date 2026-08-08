@@ -29,7 +29,7 @@ export default function HomePage() {
   const [allProducts, setAllProducts] = useState([])
   const [featuredProducts, setFeaturedProducts] = useState([])
   const navigate = useNavigate()
-  const { isLoggedIn, user } = useAuth()
+  const { isLoggedIn, isSeller, user } = useAuth()
   const userName = user?.name || ''
 
   const [inquiry, setInquiry] = useState({ item: '', details: '', quantity: '', unit: 'Pcs' })
@@ -100,9 +100,18 @@ export default function HomePage() {
             <div className="bg-primary rounded p-4 text-white text-sm">
               <div className="flex items-center gap-2 mb-3">
                 {isLoggedIn ? (
-                  <div className="w-10 h-10 rounded-full bg-white text-primary flex items-center justify-center text-lg font-bold border border-white">
-                    {userName.charAt(0).toUpperCase()}
-                  </div>
+                  user?.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={userName}
+                      className="w-10 h-10 rounded-full object-cover border border-white bg-white"
+                      onError={(e) => { e.target.style.display = 'none' }}
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-white text-primary flex items-center justify-center text-lg font-bold border border-white">
+                      {userName.charAt(0).toUpperCase()}
+                    </div>
+                  )
                 ) : (
                   <img
                     src={img("pic1.jpg")}
@@ -121,12 +130,21 @@ export default function HomePage() {
                 </div>
               </div>
               {isLoggedIn ? (
-                <button
-                  onClick={() => navigate('/products')}
-                  className="w-full bg-white text-primary text-xs font-semibold py-1.5 rounded hover:opacity-90"
-                >
-                  Shop now
-                </button>
+                isSeller ? (
+                  <button
+                    onClick={() => navigate('/seller')}
+                    className="w-full bg-white text-primary text-xs font-semibold py-1.5 rounded hover:opacity-90"
+                  >
+                    Go to dashboard
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate('/products')}
+                    className="w-full bg-white text-primary text-xs font-semibold py-1.5 rounded hover:opacity-90"
+                  >
+                    Shop now
+                  </button>
+                )
               ) : (
                 <div className="flex gap-2">
                   <Link

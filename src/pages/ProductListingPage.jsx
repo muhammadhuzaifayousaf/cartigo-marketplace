@@ -6,6 +6,7 @@ import Footer from '../components/Footer'
 import FilterSidebar from '../components/FilterSidebar'
 import ProductCard from '../components/ProductCard'
 import { fetchProducts } from '../services/api'
+import { PRODUCT_CATEGORIES } from '../data/categories'
 
 function FilterChip({ label, onRemove }) {
   return (
@@ -96,7 +97,6 @@ function ErrorState({ message, onRetry }) {
 export default function ProductListingPage() {
   const [viewMode, setViewMode]           = useState('grid')
   const [sortBy, setSortBy]               = useState('featured')
-  const [verifiedOnly, setVerifiedOnly]   = useState(false)
   const [wishlistIds, setWishlistIds]     = useState([])
   const [currentPage, setCurrentPage]     = useState(1)
   const [itemsPerPage, setItemsPerPage]   = useState(10)
@@ -119,8 +119,8 @@ export default function ProductListingPage() {
     price: { min: 0, max: 999999 },
   })
 
-  // Derive categories from fetched products
-  const categories = ['All', ...new Set(products.map((product) => product.category))]
+  // Canonical categories from the shared list (mirrors the backend config)
+  const categories = ['All', ...PRODUCT_CATEGORIES]
 
   // ── Fetch products from backend API ──
   const loadProducts = useCallback(async () => {
@@ -163,8 +163,6 @@ export default function ProductListingPage() {
       list = list.filter((p) => filters.brands.includes(p.brand))
     if (filters.categories.length)
       list = list.filter((p) => filters.categories.includes(p.category))
-    if (verifiedOnly)
-      list = list.filter((p) => p.verified)
     if (filters.ratings.length)
       list = list.filter((p) => filters.ratings.some((r) => p.rating >= r))
     if (filters.condition !== 'Any')
@@ -182,7 +180,7 @@ export default function ProductListingPage() {
     }
 
     return list
-  }, [searchTerm, selectedCategory, filters, sortBy, verifiedOnly, products])
+  }, [searchTerm, selectedCategory, filters, sortBy, products])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage))
   const paginated  = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
@@ -276,15 +274,6 @@ export default function ProductListingPage() {
                   <strong className="text-text-primary">{filtered.length}</strong> items in{' '}
                   <strong className="text-text-primary">{activeCategory}</strong>
                 </span>
-                <label className="flex items-center gap-1.5 text-sm text-text-secondary cursor-pointer ml-auto sm:ml-0">
-                  <input
-                    type="checkbox"
-                    checked={verifiedOnly}
-                    onChange={(e) => setVerifiedOnly(e.target.checked)}
-                    className="accent-primary"
-                  />
-                  Verified only
-                </label>
               </div>
               <div className="flex items-center gap-3">
                 <select

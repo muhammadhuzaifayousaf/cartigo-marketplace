@@ -40,7 +40,7 @@ export default function SignupPage() {
   const validate = () => {
     const newErrors = {}
     if (!form.name.trim()) {
-      newErrors.name = 'Full name is required'
+      newErrors.name = role === 'seller' ? 'Store name is required' : 'Full name is required'
     }
     if (!form.email.trim()) {
       newErrors.email = 'Email is required'
@@ -135,13 +135,13 @@ export default function SignupPage() {
         </div>
 
         <FormInput
-          label="Full Name"
+          label={role === 'seller' ? 'Store name' : 'Full Name'}
           type="text"
           name="name"
           value={form.name}
           onChange={handleChange}
           error={errors.name}
-          placeholder="Muhammad"
+          placeholder={role === 'seller' ? 'Your store name' : 'Muhammad'}
         />
 
         <FormInput

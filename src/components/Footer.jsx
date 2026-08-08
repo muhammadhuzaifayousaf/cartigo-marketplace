@@ -15,10 +15,10 @@ const footerCols = [
   {
     title: 'Partnership',
     links: [
-      { label: 'Sell on Cartiqo', to: '/about' },
+      { label: 'Sell on Cartiqo', to: '/signup' },
       { label: 'Affiliate program', to: '/about' },
       { label: 'Advertise', to: '/about' },
-      { label: 'Supplier directory', to: '/about' },
+      { label: 'Supplier directory', to: '/products' },
     ],
   },
   {
@@ -35,8 +35,8 @@ const footerCols = [
     links: [
       { label: 'Login', to: '/login' },
       { label: 'Register', to: '/signup' },
-      { label: 'My Orders', to: '/cart' },
-      { label: 'Settings', to: '/about' },
+      { label: 'My Orders', to: '/orders' },
+      { label: 'Settings', to: '/profile' },
     ],
   },
 ]

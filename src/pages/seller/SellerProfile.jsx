@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Mail, User, BadgeCheck, Store, Star, Loader2, Calendar, MapPin } from 'lucide-react'
+import { Mail, BadgeCheck, Store, Star, Loader2, Calendar, MapPin } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { fetchSellerProducts, fetchMyProfile, updateMyProfile } from '../../services/api'
 import AvatarUpload from '../../components/AvatarUpload'
@@ -86,7 +86,7 @@ export default function SellerProfile() {
   }
 
   const rows = [
-    { label: 'Full name', value: user?.name, icon: User },
+    { label: 'Store name', value: user?.name, icon: Store },
     { label: 'Email', value: user?.email, icon: Mail },
     { label: 'Role', value: 'Seller', icon: Store },
     { label: 'Business category', value: businessCategory || 'General', icon: Store },
