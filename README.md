@@ -37,7 +37,7 @@ A modern and fully responsive **full-stack eCommerce marketplace** built with **
 - Covers backend setup (Node.js + Express + MongoDB Atlas), REST API endpoints (GET /api/products, GET /api/products/:id), axios frontend integration, loading/error states, dynamic hostname for mobile access, and the About page.
 
 ### Week 6 Documentation
-- 📄 **Week 6 Report / Assignment:** https://drive.google.com/file/d/1z0TTvPVRnP8a1XbCQDgN9LcCOBxYe9m/
+- 📄 **Week 6 Report / Assignment:** https://drive.google.com/file/d/1z0TTvPVRnP8aX1YbCQDgN9LcCOBxYe9m/
 - Covers full backend integration and deployment — JWT authentication, role-based access (customer/seller/admin), order and review systems, Cloudinary uploads, and deployment to Vercel and Render.
 
 ## ✨ Features
@@ -319,10 +319,8 @@ The backend runs on **http://localhost:5000**. Make sure MongoDB Atlas is whitel
 
 ## 🔗 Project Links
 
-* **GitHub Repository:** https://github.com/muhammadhuzaifayousaf/cartigo-marketplace
 * **Live Website:** https://cartiqo-shop.vercel.app/
 * **Demo Video:** https://youtu.be/3Ru8KJNPLmU
-* **Week 6 Documentation:** https://drive.google.com/file/d/1z0TTvPVRnP8a1XbCQDgN9LcCOBxYe9m/
 
 ## 👨‍💻 Author
 
