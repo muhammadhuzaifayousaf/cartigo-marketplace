@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { CheckCircle } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { useCart } from '../context/CartContext'
+import { useCart } from '../features/cart/CartContext'
 
 export default function OrderSuccessPage() {
   const location = useLocation()

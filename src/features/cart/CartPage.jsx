@@ -1,38 +1,32 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 
-import CartItem from "../components/CartItem";
-import CartSummary from "../components/CartSummary";
-import ServiceFeatures from "../components/ServiceFeatures";
-import SavedProducts from "../components/SavedProducts";
-import PromoBanner from "../components/PromoBanner";
+import CartItem from "./CartItem";
+import CartSummary from "./CartSummary";
+import ServiceFeatures from "../../components/ServiceFeatures";
+import SavedProducts from "./SavedProducts";
+import PromoBanner from "../../components/PromoBanner";
 
-import { useCart } from "../context/CartContext";
-import { fetchProducts } from "../services/api";
+import { useCart } from "./CartContext";
+import { fetchProducts } from "../../services/api";
+import useFetch from "../../shared/hooks/useFetch";
 
 export default function CartPage() {
   const { items, clearCart, totalItems } = useCart();
-  const [stockMap, setStockMap] = useState({});
 
-  // Fetch live stock so the + button respects how many are actually available.
-  useEffect(() => {
-    let cancelled = false;
-    fetchProducts()
-      .then((products) => {
-        if (cancelled) return;
-        const map = {};
-        products.forEach((p) => {
-          map[p.id] = p.stock;
-        });
-        setStockMap(map);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // Live stock fetched through the reusable useFetch hook. The stock map is
+  // derived with useMemo so it is only rebuilt when the catalog actually
+  // changes, keeping the + button's availability check fast and correct.
+  const { data: catalog = [] } = useFetch(() => fetchProducts(), []);
+  const stockMap = useMemo(() => {
+    const map = {};
+    catalog.forEach((p) => {
+      map[p.id] = p.stock;
+    });
+    return map;
+  }, [catalog]);
 
   return (
     <>

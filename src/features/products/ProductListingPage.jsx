@@ -1,12 +1,14 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { LayoutGrid, List, SlidersHorizontal, ChevronLeft, ChevronRight, X, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
-import FilterSidebar from '../components/FilterSidebar'
-import ProductCard from '../components/ProductCard'
-import { fetchProducts } from '../services/api'
-import { PRODUCT_CATEGORIES } from '../data/categories'
+import Navbar from '../../components/Navbar'
+import Footer from '../../components/Footer'
+import FilterSidebar from './FilterSidebar'
+import ProductCard from './ProductCard'
+import { fetchProducts } from '../../services/api'
+import { PRODUCT_CATEGORIES } from '../../data/categories'
+import useDebounce from '../../shared/hooks/useDebounce'
+import useFetch from '../../shared/hooks/useFetch'
 
 function FilterChip({ label, onRemove }) {
   return (
@@ -97,7 +99,6 @@ function ErrorState({ message, onRetry }) {
 export default function ProductListingPage() {
   const [viewMode, setViewMode]           = useState('grid')
   const [sortBy, setSortBy]               = useState('featured')
-  const [wishlistIds, setWishlistIds]     = useState([])
   const [currentPage, setCurrentPage]     = useState(1)
   const [itemsPerPage, setItemsPerPage]   = useState(10)
   const [showMobileFilter, setShowMobileFilter] = useState(false)
@@ -105,10 +106,11 @@ export default function ProductListingPage() {
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All')
 
-  // ── Backend data state ──
-  const [products, setProducts]           = useState([])
-  const [loading, setLoading]             = useState(true)
-  const [error, setError]                 = useState(null)
+  // ── Backend data via the reusable useFetch hook ──
+  const { data: products = [], loading, error, refetch: loadProducts } = useFetch(
+    () => fetchProducts(),
+    []
+  )
 
   const [filters, setFilters] = useState({
     brands: [],
@@ -122,25 +124,9 @@ export default function ProductListingPage() {
   // Canonical categories from the shared list (mirrors the backend config)
   const categories = ['All', ...PRODUCT_CATEGORIES]
 
-  // ── Fetch products from backend API ──
-  const loadProducts = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await fetchProducts()
-      setProducts(data)
-    } catch (err) {
-      console.error('Failed to fetch products:', err)
-      setError(err.response?.data?.message || err.message || 'Failed to fetch products')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  // Fetch on component mount
-  useEffect(() => {
-    loadProducts()
-  }, [loadProducts])
+  // Debounce the search box (400ms) so filtering only runs after the user
+  // stops typing — avoids recomputing the list on every keystroke.
+  const debouncedSearchTerm = useDebounce(searchTerm, 400)
 
   useEffect(() => {
     const query = searchParams.get('q') || ''
@@ -149,11 +135,13 @@ export default function ProductListingPage() {
     if (cat) setSelectedCategory(cat)
   }, [searchParams])
 
+  // Memoized filtered list: recalculated only when the products, the
+  // debounced query, the active filters, or the sort order actually change.
   const filtered = useMemo(() => {
     let list = [...products]
 
-    if (searchTerm.trim()) {
-      const q = searchTerm.toLowerCase().trim()
+    if (debouncedSearchTerm.trim()) {
+      const q = debouncedSearchTerm.toLowerCase().trim()
       list = list.filter((p) => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q))
     }
     if (selectedCategory !== 'All') {
@@ -180,13 +168,10 @@ export default function ProductListingPage() {
     }
 
     return list
-  }, [searchTerm, selectedCategory, filters, sortBy, products])
+  }, [debouncedSearchTerm, selectedCategory, filters, sortBy, products])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage))
   const paginated  = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-
-  const toggleWishlist = (id) =>
-    setWishlistIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
 
   const activeChips = [
     ...filters.brands.map((b)    => ({ label: b,    key: 'brands',     val: b })),
@@ -348,8 +333,6 @@ export default function ProductListingPage() {
                       key={p.id}
                       product={p}
                       mode="grid"
-                      wishlistIds={wishlistIds}
-                      onWishlist={toggleWishlist}
                     />
                   ))}
                 </div>
@@ -360,8 +343,6 @@ export default function ProductListingPage() {
                       key={p.id}
                       product={p}
                       mode="list"
-                      wishlistIds={wishlistIds}
-                      onWishlist={toggleWishlist}
                     />
                   ))}
                 </div>

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCart } from "../context/CartContext";
-import { useAuth } from "../context/AuthContext";
-import { formatPrice } from "../utils/helpers";
+import { useCart } from "./CartContext";
+import { useAuth } from "../../context/AuthContext";
+import { formatPrice } from "../../utils/helpers";
 
 export default function CartSummary() {
   const { subtotal } = useCart();

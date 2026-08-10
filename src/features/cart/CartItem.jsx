@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { useCart } from "../context/CartContext";
-import { useToast } from "../context/ToastContext";
-import { formatPrice } from "../utils/helpers";
+import { useCart } from "./CartContext";
+import { useToast } from "../../context/ToastContext";
+import { formatPrice } from "../../utils/helpers";
 
 export default function CartItem({ item, stock }) {
   const { updateQty, removeItem } = useCart();

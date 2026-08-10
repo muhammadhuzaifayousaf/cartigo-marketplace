@@ -7,7 +7,8 @@ import {
   BadgeCheck,
 } from 'lucide-react'
 import { navCategories, PRODUCT_CATEGORIES } from '../data/categories'
-import { useCart } from '../context/CartContext'
+import { useCart } from '../features/cart/CartContext'
+import { useWishlist } from '../features/wishlist/WishlistContext'
 import { useAuth } from '../context/AuthContext'
 import { img } from '../utils/helpers'
 import Avatar from './Avatar'
@@ -69,6 +70,7 @@ function IconBtn({ icon: Icon, label, to, badge }) {
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { totalItems } = useCart()
+  const { count: wishlistCount } = useWishlist()
   const navigate = useNavigate()
   const { isLoggedIn, isSeller, isAdmin, user, logout } = useAuth()
 
@@ -112,6 +114,7 @@ export default function Navbar() {
           ) : (
             <>
               <IconBtn icon={Package} label="Orders" to={isLoggedIn ? '/orders' : '/login'} />
+              <IconBtn icon={Heart} label="Favorites" to="/wishlist" badge={wishlistCount} />
               <IconBtn icon={ShoppingCart} label="My cart" to="/cart" badge={totalItems} />
             </>
           )}
@@ -291,7 +294,7 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
-                  <Link to="/cart" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
+                  <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">
                     <Heart size={18} /> Favorites
                   </Link>
                   <Link to="/orders" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-text-secondary hover:bg-bg-light hover:text-primary">

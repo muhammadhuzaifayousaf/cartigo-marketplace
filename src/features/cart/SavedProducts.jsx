@@ -1,6 +1,6 @@
-import { useCart } from "../context/CartContext";
-import { img, formatPrice } from "../utils/helpers";
-import { products } from "../data/products";
+import { useCart } from "./CartContext";
+import { img, formatPrice } from "../../utils/helpers";
+import { products } from "../../data/products";
 
 export default function SavedProducts() {
   const { addItem, items } = useCart();
@@ -36,6 +36,7 @@ export default function SavedProducts() {
             <img
               src={img(product.image)}
               alt={product.name}
+              loading="lazy"
               className="w-full h-44 object-contain"
             />
             <h3 className="font-bold mt-4 text-text-primary">

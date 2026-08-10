@@ -1,12 +1,15 @@
 import { HashRouter as Router, Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { CartProvider } from "./context/CartContext";
+import { CartProvider } from "./features/cart/CartContext";
+import { WishlistProvider } from "./features/wishlist/WishlistContext";
 import { ToastProvider } from "./context/ToastContext";
+import ErrorBoundary from "./shared/components/ErrorBoundary";
 
 import HomePage from "./pages/HomePage";
-import ProductListingPage from "./pages/ProductListingPage";
-import ProductDetailPage from "./pages/ProductDetailPage";
-import CartPage from "./pages/CartPage";
+import ProductListingPage from "./features/products/ProductListingPage";
+import ProductDetailPage from "./features/products/ProductDetailPage";
+import CartPage from "./features/cart/CartPage";
+import WishlistPage from "./features/wishlist/WishlistPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -70,17 +73,25 @@ function NotFound() {
   );
 }
 
+function AppRoutes({ children }) {
+  const location = useLocation();
+  return <ErrorBoundary resetKey={location.pathname}>{children}</ErrorBoundary>;
+}
+
 export default function App() {
   return (
     <ToastProvider>
       <AuthProvider>
         <CartProvider>
-          <Router>
+          <WishlistProvider>
+            <Router>
+            <AppRoutes>
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/products" element={<ProductListingPage />} />
               <Route path="/products/:id" element={<ProductDetailPage />} />
               <Route path="/cart" element={<CartRoute />} />
+              <Route path="/wishlist" element={<WishlistPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route
@@ -139,7 +150,9 @@ export default function App() {
 
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </Router>
+            </AppRoutes>
+            </Router>
+          </WishlistProvider>
         </CartProvider>
       </AuthProvider>
     </ToastProvider>

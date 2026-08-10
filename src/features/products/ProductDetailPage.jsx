@@ -1,18 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { Heart, ShoppingCart, Star, Shield, Globe, ChevronLeft, Loader2, AlertCircle, RefreshCw, MapPin, Calendar } from 'lucide-react'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
-import StarRating from '../components/StarRating'
-import ReviewsSection from '../components/ReviewsSection'
-import PromoBanner from '../components/PromoBanner'
-import { fetchProductById, fetchProducts, fetchPublicProfile } from '../services/api'
-import { fetchSellerRating } from '../services/reviewApi'
-import { img, formatPrice } from '../utils/helpers'
-import Avatar from '../components/Avatar'
-import { useCart } from '../context/CartContext'
-import { useToast } from '../context/ToastContext'
-import { useAuth } from '../context/AuthContext'
+import Navbar from '../../components/Navbar'
+import Footer from '../../components/Footer'
+import StarRating from '../../components/StarRating'
+import ReviewsSection from '../../components/ReviewsSection'
+import PromoBanner from '../../components/PromoBanner'
+import { fetchProductById, fetchProducts, fetchPublicProfile } from '../../services/api'
+import { fetchSellerRating } from '../../services/reviewApi'
+import { img, formatPrice } from '../../utils/helpers'
+import Avatar from '../../components/Avatar'
+import { useCart } from '../cart/CartContext'
+import { useToast } from '../../context/ToastContext'
+import { useAuth } from '../../context/AuthContext'
+import { useWishlist } from '../wishlist/WishlistContext'
 
 // "You may like" sidebar items (static data matching design)
 const youMayLike = [
@@ -71,7 +72,7 @@ export default function ProductDetailPage() {
 
   const [activeImg,     setActiveImg]     = useState(0)
   const [activeTab,     setActiveTab]     = useState('description')
-  const [wishlisted,    setWishlisted]    = useState(false)
+  const { isWishlisted, toggleItem } = useWishlist()
   const [qty,           setQty]           = useState(1)
   const [sellerStats,   setSellerStats]   = useState(null)
   const [sellerProfile, setSellerProfile] = useState(null)
@@ -107,7 +108,6 @@ export default function ProductDetailPage() {
     window.scrollTo(0, 0)
     setActiveImg(0)
     setActiveTab('description')
-    setWishlisted(false)
     setQty(1)
   }, [loadProduct])
 
@@ -230,6 +230,7 @@ export default function ProductDetailPage() {
                   <img
                     src={img(src)}
                     alt={`View ${i + 1}`}
+                    loading="lazy"
                     className="object-contain w-full h-full p-1"
                     onError={(e) => { e.target.src = `https://placehold.co/56x56/f7f7f7/999?text=` }}
                   />
@@ -423,15 +424,15 @@ export default function ProductDetailPage() {
               )}
             </div>
             <button
-              onClick={() => setWishlisted(!wishlisted)}
+              onClick={() => toggleItem(product)}
               className={`w-full mt-3 flex items-center justify-center gap-2 text-sm py-2 rounded border transition-colors ${
-                wishlisted
+                isWishlisted(product.id)
                   ? 'border-danger text-danger bg-red-50'
                   : 'border-border-col text-text-secondary hover:border-primary hover:text-primary'
               }`}
             >
-              <Heart size={14} className={wishlisted ? 'fill-danger' : ''} />
-              {wishlisted ? 'Saved' : 'Save for later'}
+              <Heart size={14} className={isWishlisted(product.id) ? 'fill-danger' : ''} />
+              {isWishlisted(product.id) ? 'Saved' : 'Save for later'}
             </button>
           </div>
         </div>
@@ -530,6 +531,7 @@ export default function ProductDetailPage() {
                       <img
                         src={img(item.image)}
                         alt={item.name}
+                        loading="lazy"
                         className="object-contain w-full h-full p-1"
                         onError={(e) => { e.target.src = `https://placehold.co/48x48/f7f7f7/999?text=` }}
                       />
@@ -560,6 +562,7 @@ export default function ProductDetailPage() {
                     <img
                       src={img(p.image)}
                       alt={p.name}
+                      loading="lazy"
                       className="object-contain w-full h-full p-3 group-hover:scale-105 transition-transform"
                       onError={(e) => { e.target.src = `https://placehold.co/160x128/f7f7f7/999?text=Image` }}
                     />

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import { PRODUCT_CATEGORIES } from '../data/categories'
-import { brands, features, conditions, ratingFilters } from '../data/products'
-import StarRating from './StarRating'
+import { PRODUCT_CATEGORIES } from '../../data/categories'
+import { brands, features, conditions, ratingFilters } from '../../data/products'
+import StarRating from '../../components/StarRating'
 
 // Collapsible section wrapper
 function Section({ title, children, defaultOpen = true }) {

@@ -1,36 +1,33 @@
-import { Heart, BadgeCheck } from 'lucide-react'
+import { memo } from 'react'
+import { BadgeCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import StarRating from './StarRating'
-import { img, formatPrice } from '../utils/helpers'
-import { useCart } from '../context/CartContext'
-import { useToast } from '../context/ToastContext'
-import { useAuth } from '../context/AuthContext'
+import StarRating from '../../components/StarRating'
+import { img, formatPrice } from '../../utils/helpers'
+import { useCart } from '../cart/CartContext'
+import { useToast } from '../../context/ToastContext'
+import { useAuth } from '../../context/AuthContext'
+import WishlistButton from '../wishlist/WishlistButton'
 
 // ── Grid Card ──────────────────────────────────────────────────────────────
-function GridCard({ product, onWishlist, wishlisted, onAddToCart }) {
+function GridCard({ product, onAddToCart }) {
   const rating = product.totalReviews > 0 ? product.averageRating : product.rating
   const reviewCount = product.totalReviews > 0 ? product.totalReviews : product.reviews || 0
 
   return (
     <div className="product-card overflow-hidden group relative">
-      {/* Wishlist button */}
-      <button
-        onClick={(e) => { e.preventDefault(); onWishlist(product.id) }}
+      <WishlistButton
+        product={product}
+        size={16}
         className="absolute top-2 right-2 z-10 bg-white rounded-full p-1 shadow"
-        aria-label="Save to wishlist"
-      >
-        <Heart
-          size={16}
-          className={wishlisted ? 'fill-danger text-danger' : 'text-text-muted'}
-        />
-      </button>
+      />
 
       <Link to={`/products/${product.id}`}>
-        {/* Product image */}
+        {/* Product image — loading="lazy" defers below-the-fold images */}
         <div className="aspect-square bg-bg-light flex items-center justify-center overflow-hidden">
           <img
             src={img(product.image)}
             alt={product.name}
+            loading="lazy"
             className="object-contain w-full h-full p-4 group-hover:scale-105 transition-transform duration-300"
             onError={(e) => { e.target.src = `https://placehold.co/300x300/f7f7f7/999?text=Image` }}
           />
@@ -85,7 +82,7 @@ function GridCard({ product, onWishlist, wishlisted, onAddToCart }) {
 }
 
 // ── List Card ──────────────────────────────────────────────────────────────
-function ListCard({ product, onWishlist, wishlisted, onAddToCart }) {
+function ListCard({ product, onAddToCart }) {
   const rating = product.totalReviews > 0 ? product.averageRating : product.rating
   const reviewCount = product.totalReviews > 0 ? product.totalReviews : product.reviews || 0
 
@@ -96,6 +93,7 @@ function ListCard({ product, onWishlist, wishlisted, onAddToCart }) {
           <img
             src={img(product.image)}
             alt={product.name}
+            loading="lazy"
             className="object-contain w-full h-full p-2"
             onError={(e) => { e.target.src = `https://placehold.co/200x200/f7f7f7/999?text=Image` }}
           />
@@ -154,23 +152,22 @@ function ListCard({ product, onWishlist, wishlisted, onAddToCart }) {
       </div>
 
       {/* Right: wishlist */}
-      <button
-        onClick={() => onWishlist(product.id)}
+      <WishlistButton
+        product={product}
+        size={18}
         className="flex-shrink-0 self-start p-1"
-        aria-label="Save to wishlist"
-      >
-        <Heart
-          size={18}
-          className={wishlisted ? 'fill-danger text-danger' : 'text-text-muted hover:text-danger'}
-        />
-      </button>
+      />
     </div>
   )
 }
 
 // ── Main export ────────────────────────────────────────────────────────────
-export default function ProductCard({ product, mode = 'grid', wishlistIds = [], onWishlist = () => {} }) {
-  const wishlisted = wishlistIds.includes(product.id)
+// Memoized with React.memo because ProductCard is rendered many times in
+// product grids/lists and receives stable props (the same product object and
+// a string `mode`). Skipping re-renders here keeps search-typing and filter
+// changes cheap — the card's own context reads (cart/wishlist/toast/auth)
+// still update when those specific values change.
+const ProductCard = memo(function ProductCard({ product, mode = 'grid' }) {
   const { addItem } = useCart()
   const showToast = useToast()
   const { isSeller } = useAuth()
@@ -193,6 +190,8 @@ export default function ProductCard({ product, mode = 'grid', wishlistIds = [], 
   }
 
   return mode === 'grid'
-    ? <GridCard product={product} onWishlist={onWishlist} wishlisted={wishlisted} onAddToCart={handleAddToCart} />
-    : <ListCard product={product} onWishlist={onWishlist} wishlisted={wishlisted} onAddToCart={handleAddToCart} />
-}
+    ? <GridCard product={product} onAddToCart={handleAddToCart} />
+    : <ListCard product={product} onAddToCart={handleAddToCart} />
+})
+
+export default ProductCard
