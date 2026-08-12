@@ -1,7 +1,9 @@
+import { useRef, useEffect } from "react";
 import { HashRouter as Router, Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { CartProvider } from "./features/cart/CartContext";
 import { WishlistProvider } from "./features/wishlist/WishlistContext";
+import { CompareProvider, useCompare } from "./features/compare/CompareContext";
 import { ToastProvider } from "./context/ToastContext";
 import ErrorBoundary from "./shared/components/ErrorBoundary";
 
@@ -10,6 +12,8 @@ import ProductListingPage from "./features/products/ProductListingPage";
 import ProductDetailPage from "./features/products/ProductDetailPage";
 import CartPage from "./features/cart/CartPage";
 import WishlistPage from "./features/wishlist/WishlistPage";
+import ComparePage from "./features/compare/ComparePage";
+import CompareBar from "./features/compare/CompareBar";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -66,6 +70,28 @@ function WishlistRoute() {
   return <WishlistPage />;
 }
 
+/**
+ * CompareRouteWatcher — the comparison selection is meant to be temporary:
+ * as soon as the user leaves the /compare page the selection is cleared.
+ * A location watcher (rather than an unmount cleanup in ComparePage) is used
+ * so React StrictMode's double-mount in development doesn't wipe the list.
+ */
+function CompareRouteWatcher() {
+  const { pathname } = useLocation();
+  const { clearItems } = useCompare();
+  const prevPath = useRef(pathname);
+
+  useEffect(() => {
+    const prev = prevPath.current;
+    prevPath.current = pathname;
+    if (prev === "/compare" && pathname !== "/compare") {
+      clearItems();
+    }
+  }, [pathname, clearItems]);
+
+  return null;
+}
+
 function NotFound() {
   return (
     <div className="min-h-screen bg-bg-light">
@@ -94,6 +120,7 @@ export default function App() {
       <AuthProvider>
         <CartProvider>
           <WishlistProvider>
+            <CompareProvider>
             <Router>
             <AppRoutes>
             <Routes>
@@ -102,6 +129,7 @@ export default function App() {
               <Route path="/products/:id" element={<ProductDetailPage />} />
               <Route path="/cart" element={<CartRoute />} />
               <Route path="/wishlist" element={<WishlistRoute />} />
+              <Route path="/compare" element={<ComparePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route
@@ -160,8 +188,11 @@ export default function App() {
 
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <CompareBar />
+            <CompareRouteWatcher />
             </AppRoutes>
             </Router>
+            </CompareProvider>
           </WishlistProvider>
         </CartProvider>
       </AuthProvider>

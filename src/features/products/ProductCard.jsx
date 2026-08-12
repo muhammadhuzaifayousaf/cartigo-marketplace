@@ -7,6 +7,7 @@ import { useCart } from '../cart/CartContext'
 import { useToast } from '../../context/ToastContext'
 import { useAuth } from '../../context/AuthContext'
 import WishlistButton from '../wishlist/WishlistButton'
+import CompareButton from '../compare/CompareButton'
 
 // ── Grid Card ──────────────────────────────────────────────────────────────
 function GridCard({ product, onAddToCart }) {
@@ -19,6 +20,10 @@ function GridCard({ product, onAddToCart }) {
         product={product}
         size={16}
         className="absolute top-2 right-2 z-10 bg-white rounded-full p-1 shadow"
+      />
+      <CompareButton
+        product={product}
+        className="absolute top-2 left-2 z-10 bg-white rounded-md p-1 shadow"
       />
 
       <Link to={`/products/${product.id}`}>
@@ -151,12 +156,15 @@ function ListCard({ product, onAddToCart }) {
         </div>
       </div>
 
-      {/* Right: wishlist */}
-      <WishlistButton
-        product={product}
-        size={18}
-        className="flex-shrink-0 self-start p-1"
-      />
+      {/* Right: wishlist + compare */}
+      <div className="flex flex-col gap-2 flex-shrink-0 self-start">
+        <WishlistButton
+          product={product}
+          size={18}
+          className="self-end p-1"
+        />
+        <CompareButton product={product} className="self-end bg-white rounded-md p-1 shadow" />
+      </div>
     </div>
   )
 }

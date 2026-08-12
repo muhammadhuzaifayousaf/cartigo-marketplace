@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { BadgeCheck, ShoppingCart, X } from 'lucide-react'
 import { img, formatPrice } from '../../utils/helpers'
+import CompareButton from '../compare/CompareButton'
 
 /**
  * WishlistCard — a single saved product on the wishlist page.
@@ -10,6 +11,10 @@ import { img, formatPrice } from '../../utils/helpers'
 export default function WishlistCard({ item, onAddToCart, onRemove }) {
   return (
     <div className="product-card overflow-hidden group relative">
+      <CompareButton
+        product={item}
+        className="absolute top-2 left-2 z-10 bg-white rounded-md p-1 shadow"
+      />
       <button
         type="button"
         onClick={() => onRemove(item.id)}
