@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Mail, BadgeCheck, Store, Star, Loader2, Calendar, MapPin } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Mail, BadgeCheck, Store, Star, Loader2, Calendar, MapPin, ExternalLink } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { fetchSellerProducts, fetchMyProfile, updateMyProfile } from '../../services/api'
 import AvatarUpload from '../../components/AvatarUpload'
@@ -103,11 +104,19 @@ export default function SellerProfile() {
 
   return (
     <div className="space-y-5 max-w-2xl">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Profile</h1>
-        <p className="text-sm text-text-muted mt-1">
-          Manage your store profile. Only the photo, phone and description are editable.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Profile</h1>
+          <p className="text-sm text-text-muted mt-1">
+            Manage your store profile. Only the photo, phone and description are editable.
+          </p>
+        </div>
+        <Link
+          to={`/profile/${user?._id}`}
+          className="inline-flex items-center gap-1.5 text-primary border border-primary hover:bg-primary-light text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+        >
+          <ExternalLink size={13} /> View public profile
+        </Link>
       </div>
 
       {loading ? (
@@ -127,21 +136,21 @@ export default function SellerProfile() {
               />
               <div className="min-w-0">
                 <p className="font-semibold text-text-primary">{user?.name}</p>
-                <p className="text-sm text-text-muted truncate">{user?.email}</p>
+                <p className="text-sm text-text-muted break-words">{user?.email}</p>
               </div>
             </div>
 
             <dl className="divide-y divide-border-col">
               {rows.map(({ label, value, icon: Icon }) => (
-                <div key={label} className="py-3 flex items-center gap-3">
-                  <Icon size={18} className="text-text-muted flex-shrink-0" />
-                  <dt className="text-sm text-text-secondary w-40">{label}</dt>
-                  <dd className="text-sm font-medium text-text-primary flex-1 min-w-0 truncate">{value}</dd>
+                <div key={label} className="py-3 flex items-start gap-3">
+                  <Icon size={18} className="text-text-muted flex-shrink-0 mt-0.5" />
+                  <dt className="text-sm text-text-secondary w-28 sm:w-40 flex-shrink-0">{label}</dt>
+                  <dd className="text-sm font-medium text-text-primary flex-1 min-w-0 break-words">{value}</dd>
                 </div>
               ))}
               <div className="py-3 flex items-center gap-3">
                 <Star size={18} className="text-text-muted flex-shrink-0" />
-                <dt className="text-sm text-text-secondary w-40">Rating</dt>
+                <dt className="text-sm text-text-secondary w-28 sm:w-40 flex-shrink-0">Rating</dt>
                 <dd className="text-sm font-medium text-text-primary flex-1 flex items-center gap-2 flex-wrap">
                   {rating === null ? (
                     <span className="text-text-muted">Loading…</span>

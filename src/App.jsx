@@ -56,6 +56,16 @@ function CartRoute() {
   return <CartPage />;
 }
 
+/**
+ * WishlistRoute — wishlists are a customer feature, so sellers are
+ * redirected to their dashboard.
+ */
+function WishlistRoute() {
+  const { isSeller } = useAuth();
+  if (isSeller) return <Navigate to="/seller" replace />;
+  return <WishlistPage />;
+}
+
 function NotFound() {
   return (
     <div className="min-h-screen bg-bg-light">
@@ -91,7 +101,7 @@ export default function App() {
               <Route path="/products" element={<ProductListingPage />} />
               <Route path="/products/:id" element={<ProductDetailPage />} />
               <Route path="/cart" element={<CartRoute />} />
-              <Route path="/wishlist" element={<WishlistPage />} />
+              <Route path="/wishlist" element={<WishlistRoute />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route

@@ -99,7 +99,7 @@ export default function PublicProfile() {
                   <Avatar name={profile.name} avatar={profile.avatar} size={96} />
                 </div>
                 <div className="min-w-0">
-                  <h1 className="text-xl sm:text-2xl font-bold text-text-primary leading-tight truncate">
+                  <h1 className="text-xl sm:text-2xl font-bold text-text-primary leading-tight break-words">
                     {profile.name}
                   </h1>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm">

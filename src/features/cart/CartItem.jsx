@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { useCart } from "./CartContext";
+import { useWishlist } from "../wishlist/WishlistContext";
 import { useToast } from "../../context/ToastContext";
-import { formatPrice } from "../../utils/helpers";
+import { img, formatPrice } from "../../utils/helpers";
 
 export default function CartItem({ item, stock }) {
   const { updateQty, removeItem } = useCart();
+  const { addItem: addToWishlist } = useWishlist();
   const showToast = useToast();
 
   const hasStock = typeof stock === "number" && stock >= 0;
@@ -20,6 +22,19 @@ export default function CartItem({ item, stock }) {
       return;
     }
     updateQty(item.id, item.qty + 1);
+  };
+
+  const handleSaveForLater = () => {
+    addToWishlist({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      image: img(item.image),
+      seller: item.seller || null,
+      sellerName: item.sellerName || "ShopHub",
+    });
+    removeItem(item.id);
+    showToast("Saved for later", { type: "info", duration: 3000 });
   };
 
   return (
@@ -62,6 +77,12 @@ export default function CartItem({ item, stock }) {
             <p className="text-xs font-medium text-danger mt-1">Out of stock</p>
           )}
           <div className="mt-3 flex gap-2">
+            <button
+              onClick={handleSaveForLater}
+              className="px-3 py-1 text-text-secondary border border-border-col rounded hover:border-primary hover:text-primary text-sm transition-colors"
+            >
+              Save for later
+            </button>
             <button
               onClick={() => removeItem(item.id)}
               className="px-3 py-1 text-danger border border-border-col rounded hover:bg-red-50 text-sm transition-colors"

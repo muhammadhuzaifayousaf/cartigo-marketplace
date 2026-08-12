@@ -54,10 +54,11 @@ const formatDate = (iso) => {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-// Customer card helpers — prefer the live profile (`customer`) attached by the
-// backend, falling back to the order's shipping snapshot.
+// Customer card helpers — the displayed name is what the customer entered in
+// the shipping details (order.shippingAddress.fullName), while the avatar and
+// profile link come from the live `customer` card attached by the backend.
 const customerOf = (order) => {
-  const name = order.customer?.name || order.shippingAddress?.fullName || '—'
+  const name = order.shippingAddress?.fullName || order.customer?.name || '—'
   const id = order.customer?._id || null
   const avatar = order.customer?.avatar || ''
   return { name, id, avatar }
@@ -178,48 +179,60 @@ function OrderDetailModal({ order, sellerId, onClose, onItemStatus, updating }) 
             )}
           </div>
 
-          {/* Customer + shipping */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="border border-border-col rounded-lg p-4">
-              <h3 className="font-semibold text-sm text-text-primary mb-3">Customer</h3>
-              <div className="flex items-center gap-3">
-                <Avatar
-                  name={customerOf(order).name}
-                  avatar={customerOf(order).avatar}
-                  size={40}
-                  variant="light"
-                />
-                <div className="min-w-0 text-sm text-text-secondary">
-                  {customerOf(order).id ? (
-                    <Link
-                      to={`/profile/${customerOf(order).id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="font-semibold text-text-primary truncate block hover:text-primary hover:underline transition-colors"
-                    >
-                      {customerOf(order).name}
-                    </Link>
-                  ) : (
-                    <p className="font-semibold text-text-primary truncate">{customerOf(order).name}</p>
-                  )}
-                  {order.shippingAddress?.email && (
-                    <p className="text-xs text-text-muted truncate">{order.shippingAddress.email}</p>
-                  )}
-                  {order.shippingAddress?.phone && (
-                    <p className="text-xs text-text-muted">{order.shippingAddress.phone}</p>
-                  )}
+          {/* Shipping address (with buyer card) */}
+          <div className="border border-border-col rounded-lg p-4">
+            <h3 className="font-semibold text-sm text-text-primary mb-3 flex items-center gap-1.5">
+              <MapPin size={14} className="text-primary" /> Shipping address
+            </h3>
+            <div className="flex items-center gap-3 mb-3">
+              {customerOf(order).id ? (
+                <Link
+                  to={`/profile/${customerOf(order).id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-shrink-0 rounded-full hover:ring-2 hover:ring-primary/30 transition-shadow"
+                >
+                  <Avatar
+                    name={customerOf(order).name}
+                    avatar={customerOf(order).avatar}
+                    size={44}
+                    variant="light"
+                  />
+                </Link>
+              ) : (
+                <div className="flex-shrink-0">
+                  <Avatar
+                    name={customerOf(order).name}
+                    avatar={customerOf(order).avatar}
+                    size={44}
+                    variant="light"
+                  />
                 </div>
+              )}
+              <div className="min-w-0 text-sm text-text-secondary">
+                {customerOf(order).id ? (
+                  <Link
+                    to={`/profile/${customerOf(order).id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="font-semibold text-text-primary truncate block hover:text-primary hover:underline transition-colors"
+                  >
+                    {customerOf(order).name}
+                  </Link>
+                ) : (
+                  <p className="font-semibold text-text-primary truncate">{customerOf(order).name}</p>
+                )}
+                {order.shippingAddress?.email && (
+                  <p className="text-xs text-text-muted truncate">{order.shippingAddress.email}</p>
+                )}
+                {order.shippingAddress?.phone && (
+                  <p className="text-xs text-text-muted">{order.shippingAddress.phone}</p>
+                )}
               </div>
             </div>
-            <div className="border border-border-col rounded-lg p-4">
-              <h3 className="font-semibold text-sm text-text-primary mb-3 flex items-center gap-1.5">
-                <MapPin size={14} className="text-primary" /> Shipping address
-              </h3>
-              <p className="text-sm text-text-secondary leading-relaxed">
-                {order.shippingAddress?.address}
-                <br />
-                {order.shippingAddress?.city} {order.shippingAddress?.zipCode}
-              </p>
-            </div>
+            <p className="text-sm text-text-secondary leading-relaxed">
+              {order.shippingAddress?.address}
+              <br />
+              {order.shippingAddress?.city} {order.shippingAddress?.zipCode}
+            </p>
           </div>
 
           {/* Items — per-item status */}

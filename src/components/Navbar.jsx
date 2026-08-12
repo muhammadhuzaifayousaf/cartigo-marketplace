@@ -69,6 +69,7 @@ function IconBtn({ icon: Icon, label, to, badge }) {
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const { totalItems } = useCart()
   const { count: wishlistCount } = useWishlist()
   const navigate = useNavigate()
@@ -77,6 +78,7 @@ export default function Navbar() {
   const handleLogout = () => {
     logout()
     setMobileOpen(false)
+    setProfileMenuOpen(false)
     navigate('/')
   }
 
@@ -155,22 +157,81 @@ export default function Navbar() {
           )}
         </nav>
 
-        {/* Mobile: cart + user */}
+        {/* Mobile: favorites + cart + user */}
         <div className="flex md:hidden items-center gap-3 ml-auto">
           {!isSeller && (
-            <Link to="/cart" className="relative text-text-secondary">
-              <ShoppingCart size={22} />
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-danger text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                  {totalItems}
-                </span>
-              )}
-            </Link>
+            <>
+              <Link to="/wishlist" className="relative text-text-secondary">
+                <Heart size={22} />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-danger text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
+              <Link to="/cart" className="relative text-text-secondary">
+                <ShoppingCart size={22} />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-danger text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                    {totalItems}
+                  </span>
+                )}
+              </Link>
+            </>
           )}
           {isLoggedIn ? (
-            <Link to={isSeller ? '/seller/profile' : '/profile'} className="flex items-center">
-              <Avatar name={userName} avatar={user?.avatar} size={28} />
-            </Link>
+            <div className="relative">
+              <button
+                onClick={() => setProfileMenuOpen((v) => !v)}
+                className="flex items-center rounded-full hover:opacity-80 transition-opacity"
+                aria-label="Profile menu"
+                aria-haspopup="menu"
+                aria-expanded={profileMenuOpen}
+              >
+                <Avatar name={userName} avatar={user?.avatar} size={28} />
+              </button>
+
+              {profileMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setProfileMenuOpen(false)}
+                  />
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-full mt-3 z-50 w-56 bg-white rounded-xl border border-border-col shadow-card"
+                  >
+                    <div className="absolute -top-1.5 right-3 w-3 h-3 bg-white border-t border-l border-border-col rotate-45" />
+                    <div className="p-4 border-b border-border-col flex items-center gap-3">
+                      <Avatar name={userName} avatar={user?.avatar} size={40} />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-text-primary truncate">{userName}</p>
+                        <p className="text-xs text-text-muted truncate">
+                          {user?.email || 'Welcome back'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-2">
+                      <Link
+                        to={isSeller ? '/seller/profile' : '/profile'}
+                        onClick={() => setProfileMenuOpen(false)}
+                        role="menuitem"
+                        className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-bg-light hover:text-primary transition-colors"
+                      >
+                        <User size={16} /> Go to my profile
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        role="menuitem"
+                        className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-lg text-sm text-danger hover:bg-red-50 transition-colors"
+                      >
+                        <LogOut size={16} /> Logout
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           ) : (
             <Link to="/login" className="text-text-secondary">
               <User size={22} />
@@ -234,32 +295,42 @@ export default function Navbar() {
       </div>
 
       {/* ── Mobile drawer menu ── */}
-      {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-50 flex">
-          <div className="w-72 max-w-full bg-white shadow-xl overflow-y-auto">
+      <div
+        className={`md:hidden fixed inset-0 z-50 flex ${
+          mobileOpen ? '' : 'pointer-events-none'
+        }`}
+      >
+        <div
+          className={`w-72 max-w-full bg-white shadow-xl overflow-y-auto transition-transform duration-300 ease-in-out ${
+            mobileOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
             <div className="px-4 py-4 border-b border-border-col">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {isLoggedIn ? (
-                    <Avatar name={userName} avatar={user?.avatar} size={44} variant="soft" />
-                  ) : (
-                    <div className="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                      <User size={20} />
-                    </div>
-                  )}
-                  <div>
-                    {isLoggedIn ? (
-                      <>
+                    <Link
+                      to={isSeller ? '/seller/profile' : '/profile'}
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3"
+                    >
+                      <Avatar name={userName} avatar={user?.avatar} size={44} variant="soft" />
+                      <div>
                         <p className="text-sm font-semibold text-text-primary">Hi, {userName.split(' ')[0]}</p>
                         <p className="text-xs text-text-muted">Welcome back</p>
-                      </>
-                    ) : (
-                      <>
+                      </div>
+                    </Link>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                        <User size={20} />
+                      </div>
+                      <div>
                         <Link to="/login" onClick={() => setMobileOpen(false)} className="text-sm font-semibold text-text-primary block">Sign in</Link>
                         <Link to="/signup" onClick={() => setMobileOpen(false)} className="text-sm text-text-muted">Register</Link>
-                      </>
-                    )}
-                  </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <button onClick={() => setMobileOpen(false)} className="text-text-secondary">
                   <X size={22} />
@@ -350,9 +421,13 @@ export default function Navbar() {
               <Link to="/about" onClick={() => setMobileOpen(false)} className="block hover:text-primary">Privacy policy</Link>
             </div>
           </div>
-          <div className="flex-1 bg-black/40" onClick={() => setMobileOpen(false)} />
+          <div
+            className={`flex-1 bg-black/40 transition-opacity duration-300 ${
+              mobileOpen ? 'opacity-100' : 'opacity-0'
+            }`}
+            onClick={() => setMobileOpen(false)}
+          />
         </div>
-      )}
     </header>
   )
 }

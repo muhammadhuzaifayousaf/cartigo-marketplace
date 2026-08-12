@@ -436,17 +436,19 @@ export default function ProductDetailPage() {
                 </button>
               )}
             </div>
-            <button
-              onClick={() => toggleItem(product)}
-              className={`w-full mt-3 flex items-center justify-center gap-2 text-sm py-2 rounded border transition-colors ${
-                isWishlisted(product.id)
-                  ? 'border-danger text-danger bg-red-50'
-                  : 'border-border-col text-text-secondary hover:border-primary hover:text-primary'
-              }`}
-            >
-              <Heart size={14} className={isWishlisted(product.id) ? 'fill-danger' : ''} />
-              {isWishlisted(product.id) ? 'Saved' : 'Save for later'}
-            </button>
+            {!isSeller && (
+              <button
+                onClick={() => toggleItem(product)}
+                className={`w-full mt-3 flex items-center justify-center gap-2 text-sm py-2 rounded border transition-colors ${
+                  isWishlisted(product.id)
+                    ? 'border-danger text-danger bg-red-50'
+                    : 'border-border-col text-text-secondary hover:border-primary hover:text-primary'
+                }`}
+              >
+                <Heart size={14} className={isWishlisted(product.id) ? 'fill-danger' : ''} />
+                {isWishlisted(product.id) ? 'Saved' : 'Save for later'}
+              </button>
+            )}
           </div>
         </div>
 

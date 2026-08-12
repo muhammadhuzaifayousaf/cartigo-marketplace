@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Loader2, Mail, Shield } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Loader2, Mail, Shield, ExternalLink } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import FormInput from '../components/FormInput'
@@ -92,8 +93,18 @@ export default function CustomerProfile() {
     <div className="min-h-screen bg-bg-light">
       <Navbar />
       <main className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        <h1 className="text-xl sm:text-2xl font-bold text-text-primary mb-1">My Profile</h1>
-        <p className="text-sm text-text-muted mb-6">Manage your personal details and profile photo.</p>
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-text-primary mb-1">My Profile</h1>
+            <p className="text-sm text-text-muted">Manage your personal details and profile photo.</p>
+          </div>
+          <Link
+            to={`/profile/${user?._id}`}
+            className="inline-flex items-center gap-1.5 text-primary border border-primary hover:bg-primary-light text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+          >
+            <ExternalLink size={13} /> View public profile
+          </Link>
+        </div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-text-muted">
