@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { Heart, ShoppingCart, Star, Shield, Globe, ChevronLeft, Loader2, AlertCircle, RefreshCw, MapPin, Calendar } from 'lucide-react'
+import { Heart, ShoppingCart, Star, Shield, Globe, ChevronLeft, Loader2, AlertCircle, RefreshCw, MapPin, Calendar, X } from 'lucide-react'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import StarRating from '../../components/StarRating'
@@ -10,6 +10,7 @@ import { fetchProductById, fetchProducts, fetchPublicProfile } from '../../servi
 import { fetchSellerRating } from '../../services/reviewApi'
 import { img, formatPrice } from '../../utils/helpers'
 import Avatar from '../../components/Avatar'
+import ImageMagnifier from '../../shared/components/ImageMagnifier'
 import { useCart } from '../cart/CartContext'
 import { useToast } from '../../context/ToastContext'
 import { useAuth } from '../../context/AuthContext'
@@ -72,6 +73,7 @@ export default function ProductDetailPage() {
 
   const [activeImg,     setActiveImg]     = useState(0)
   const [activeTab,     setActiveTab]     = useState('description')
+  const [lightboxOpen,  setLightboxOpen]  = useState(false)
   const { isWishlisted, toggleItem } = useWishlist()
   const [qty,           setQty]           = useState(1)
   const [sellerStats,   setSellerStats]   = useState(null)
@@ -109,7 +111,18 @@ export default function ProductDetailPage() {
     setActiveImg(0)
     setActiveTab('description')
     setQty(1)
+    setLightboxOpen(false)
   }, [loadProduct])
+
+  // Close the zoom lightbox with the Escape key.
+  useEffect(() => {
+    if (!lightboxOpen) return
+    const onKey = (e) => {
+      if (e.key === 'Escape') setLightboxOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightboxOpen])
 
   // Fetch the seller's aggregate rating + public profile for the supplier card.
   useEffect(() => {
@@ -210,12 +223,12 @@ export default function ProductDetailPage() {
 
           {/* Image gallery */}
           <div className="bg-white rounded border border-border-col p-4">
-            <div className="aspect-square bg-bg-light rounded flex items-center justify-center overflow-hidden mb-3">
-              <img
+            <div className="aspect-square bg-bg-light rounded overflow-hidden mb-3">
+              <ImageMagnifier
                 src={img(thumbImages[activeImg])}
                 alt={product.name}
-                className="object-contain w-full h-full p-4"
-                onError={(e) => { e.target.src = `https://placehold.co/400x400/f7f7f7/999?text=Product` }}
+                onOpen={() => setLightboxOpen(true)}
+                className="w-full h-full"
               />
             </div>
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
@@ -582,6 +595,43 @@ export default function ProductDetailPage() {
           <PromoBanner />
         </div>
       </main>
+
+      {/* ── Zoom Lightbox ── */}
+      {lightboxOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4 sm:p-8"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <div
+            className="relative max-w-4xl w-full bg-white rounded-lg shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setLightboxOpen(false)}
+              className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/90 text-text-primary flex items-center justify-center shadow hover:bg-bg-light transition-colors"
+              aria-label="Close zoom"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="aspect-square sm:aspect-auto sm:h-[72vh] sm:max-h-[75vh]">
+              <ImageMagnifier
+                src={img(thumbImages[activeImg])}
+                alt={product.name}
+                zoom={2.5}
+                showBadge={false}
+                className="w-full h-full"
+              />
+            </div>
+
+            <div className="p-3 border-t border-border-col">
+              <p className="text-center text-sm text-text-muted">
+                Hover to magnify · Click anywhere to close
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
