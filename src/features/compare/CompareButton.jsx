@@ -48,7 +48,6 @@ export default function CompareButton({ product, className = '' }) {
       onClick={handleClick}
       aria-pressed={checked}
       aria-label={checked ? 'Remove from comparison' : 'Add to comparison'}
-      title={checked ? 'Remove from comparison' : 'Add to comparison'}
       className={className}
     >
       <span
