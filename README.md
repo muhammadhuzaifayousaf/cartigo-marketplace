@@ -11,6 +11,7 @@ A modern and fully responsive **full-stack eCommerce marketplace** built with **
 ## 🚀 Live Demo
 
 🔗 **https://cartiqo-shop.vercel.app/**
+▶️ **Demo Video:** https://youtu.be/3Ru8KJNPLmU
 
 > **Note:** Cartiqo is deployed as a full-stack application — the React + Vite frontend runs on **Vercel**, the Node.js + Express backend runs on **Render** (https://cartigo-backend.onrender.com/), data is stored in **MongoDB Atlas**, and images are served from **Cloudinary**.
 
@@ -39,6 +40,10 @@ A modern and fully responsive **full-stack eCommerce marketplace** built with **
 ### Week 6 Documentation
 - 📄 **Week 6 Report / Assignment:** https://drive.google.com/file/d/1z0TTvPVRnP8aX1YbCQDgN9LcCOBxYe9m/
 - Covers full backend integration and deployment — JWT authentication, role-based access (customer/seller/admin), order and review systems, Cloudinary uploads, and deployment to Vercel and Render.
+
+### Week 7 Documentation
+- 📄 **Week 7 Report / Assignment:** https://drive.google.com/file/d/1pHTy-esiBpU-possOzb2EXHyQgqBJorw/
+- Covers advanced React features, custom hooks, wishlist functionality, performance optimization, error boundaries, product comparison, and feature-based code architecture.
 
 ## ✨ Features
 
@@ -142,6 +147,43 @@ A modern and fully responsive **full-stack eCommerce marketplace** built with **
 **Deployment**
 - Frontend deployed on Vercel and backend on Render, using MongoDB Atlas and Cloudinary
 
+### Week 7 Enhancements
+
+**Custom React Hooks**
+- `useLocalStorage(key, initialValue, transform)` — reusable hook with lazy initialization and automatic write-back, powering cart and wishlist persistence
+- `useDebounce(value, delay)` — debounced search input for the product listing page
+- `useFetch(requestFn, deps)` — reusable data-fetching hook returning `{ data, loading, error, refetch }` with unmount-safe cleanup
+
+**Wishlist**
+- Dedicated Wishlist feature with global state via React Context and localStorage persistence
+- Wishlist heart button on product cards with instant add/remove toggle
+- Navbar wishlist badge showing the current item count
+- Wishlist page (`/wishlist`) with remove and "Add to Cart" actions
+- Save for later from the cart (SavedProducts)
+
+**Performance Optimization**
+- `React.memo` on ProductCard to prevent unnecessary re-renders
+- `useMemo` / `useCallback` in contexts and listing pages to memoize values and handlers
+- Native lazy image loading (`loading="lazy"`) on product, cart, and wishlist thumbnails
+- Debounced search to avoid filtering on every keystroke
+
+**Error Handling**
+- Reusable class-based `ErrorBoundary` component with `resetKey` that reloads on route change
+- ErrorBoundary wraps the whole app in `main.jsx` and again around routes in `App.jsx`
+- Fallback UI with a friendly message and "Try Again" button instead of a blank screen
+
+**Code Architecture**
+- Refactored into a feature-based structure with focused directories: `features/products`, `features/cart`, `features/wishlist`, `features/compare`
+- Shared building blocks extracted into `shared/components` and `shared/hooks`
+- Existing routes and imports updated after the refactor with no broken links
+
+**Product Comparison**
+- Compare checkbox on product cards to select products for side-by-side comparison
+- Comparison limit of up to 3 products with toast feedback when the limit is reached
+- Floating Compare Bar with thumbnails, remove, and "Compare" actions
+- Dedicated compare page (`/compare`) rendering a side-by-side spec comparison
+- Compare list auto-clears when leaving the compare page
+
 ## 📄 Application Pages
 
 ### Customer Pages
@@ -149,9 +191,11 @@ A modern and fully responsive **full-stack eCommerce marketplace** built with **
 | File | Route |
 |------|-------|
 | `src/pages/HomePage.jsx` | `/` |
-| `src/pages/ProductListingPage.jsx` | `/products` |
-| `src/pages/ProductDetailPage.jsx` | `/products/:id` |
-| `src/pages/CartPage.jsx` | `/cart` |
+| `src/features/products/ProductListingPage.jsx` | `/products` |
+| `src/features/products/ProductDetailPage.jsx` | `/products/:id` |
+| `src/features/cart/CartPage.jsx` | `/cart` |
+| `src/features/wishlist/WishlistPage.jsx` | `/wishlist` |
+| `src/features/compare/ComparePage.jsx` | `/compare` |
 | `src/pages/LoginPage.jsx` | `/login` |
 | `src/pages/SignupPage.jsx` | `/signup` |
 | `src/pages/CheckoutPage.jsx` | `/checkout` |
@@ -184,11 +228,12 @@ A modern and fully responsive **full-stack eCommerce marketplace** built with **
 * JavaScript
 * Tailwind CSS
 * React Router DOM (HashRouter)
-* React Context API (Auth, Cart, Toast)
+* React Context API (Auth, Cart, Wishlist, Compare, Toast)
+* Custom React hooks (useFetch, useDebounce, useLocalStorage)
 * Axios (API requests)
 * Lucide React
 * React World Flags
-* localStorage (auth + cart persistence)
+* localStorage (auth, cart + wishlist persistence)
 
 **Backend**
 * Node.js
