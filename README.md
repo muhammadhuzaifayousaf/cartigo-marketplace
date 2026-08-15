@@ -11,6 +11,7 @@ A modern and fully responsive **full-stack eCommerce marketplace** built with **
 ## 🚀 Live Demo
 
 🔗 **https://cartiqo-shop.vercel.app/**
+
 ▶️ **Demo Video:** https://youtu.be/3Ru8KJNPLmU
 
 > **Note:** Cartiqo is deployed as a full-stack application — the React + Vite frontend runs on **Vercel**, the Node.js + Express backend runs on **Render** (https://cartigo-backend.onrender.com/), data is stored in **MongoDB Atlas**, and images are served from **Cloudinary**.
